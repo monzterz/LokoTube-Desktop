@@ -26,15 +26,20 @@ Tujuan: versi desktop LokoTube (Windows utama; macOS/Linux ikut) dengan UI berga
    applicationId → com.lokotube.android, namespace com.lokotube.music/innertube, app_name + string
    brand → "LokoTube", class MetrolistWidgetManager→LokotubeWidgetManager & SonaraCast→LokotubeCast,
    User-Agent → LokoTube-Android. Verified: desktop compile SUCCESS + app assembleDebug SUCCESS.
-3. [TODO] Restyle UI ke gaya LokoTube (light flat modern, teal #0d9488, ikon Bootstrap bukan
-   emoji). Titik utama: ui/theme/Theme.kt + Color.kt + komponen. Perhatikan: Sonara punya 2 tema
-   (Sonar Night near-black + Sonar Day aqua). LokoTube = light flat; dark glassy DITOLAK user.
+3. [DONE] Restyle UI ke gaya LokoTube (light flat modern, teal #0d9488, ikon Bootstrap bukan
+   emoji). Color.kt light flat (EmberDeep 0xFF0D9488), desktop LokotubeTheme disamakan, ikon
+   Material vector (0 emoji). Dark glassy DITOLAK user.
 4. [TODO] Port fitur LokoTube ke basis Sonara:
    - Multi-channel (accounts_list + context.user.onBehalfOfUser) — lihat skill lokotube.
    - Blokir channel.
    - Halaman artis musik.
    - SponsorBlock (cek: Sonara mungkin sudah punya setara).
-5. [TODO] Icon/branding lengkap (logo LokoTube → desktop icon.ico/icon.icns + banner WiX).
+5. [PARTIAL] Branding nama "LokoTube" SUDAH di seluruh surface user-facing (window title/tray/
+   welcome, MPRIS, jpackage vendor/description/menuGroup/bundleID/dockName, data dir, keychain,
+   StartAtLogin, desktop entry lokotube-LokoTube, make_appimage.sh, widget & crash string).
+   BELUM: icon/logo (logo_mark.xml & ic_launcher masih artwork Sonara) → icon.ico/icon.icns +
+   banner WiX. About "Creator" masih Rashid (butuh kontak Rizal). github_releases_url masih
+   MetrolistGroup (butuh repo LokoTube).
 6. [TODO] Rilis desktop (Windows MSI via GitHub Actions; macOS DMG; Linux deb/AppImage).
 
 ## Pitfall rename (terpecahkan)
