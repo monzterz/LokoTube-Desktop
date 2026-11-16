@@ -67,17 +67,14 @@ private data class Contact(
     val url: String,
 )
 
-private const val CREATOR = "Rashid"
-private const val CREATOR_HANDLE = "rashiiddsr"
+private const val CREATOR = "Rizal"
+private const val CREATOR_HANDLE = "monzterz"
 
-/** Each opens straight in its app (GitHub, mail, Instagram, WhatsApp chat). */
+/** Each opens straight in its app (GitHub, mail). */
 private val Contacts =
     listOf(
         Contact("GitHub", R.drawable.github, "https://github.com/$CREATOR_HANDLE"),
-        Contact("Email", R.drawable.mail, "mailto:rashiiddsr@gmail.com"),
-        Contact("Instagram", R.drawable.instagram, "https://instagram.com/$CREATOR_HANDLE"),
-        // 0851... in international form for wa.me.
-        Contact("WhatsApp", R.drawable.whatsapp, "https://wa.me/6285174388234"),
+        Contact("Email", R.drawable.mail, "mailto:rizalkhaerul6@gmail.com"),
     )
 
 @OptIn(ExperimentalMaterial3Api::class)

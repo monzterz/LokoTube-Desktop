@@ -457,7 +457,7 @@ private fun WelcomeScreen(onSignedIn: (Account) -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize().padding(Spacing.XXL),
     ) {
-        Image(painterResource("icons/logo_mark.xml"), null, modifier = Modifier.size(WELCOME_LOGO))
+        Image(painterResource("icons/logo_mark.png"), null, modifier = Modifier.size(WELCOME_LOGO))
         Spacer(Modifier.height(Spacing.L))
         Text("LokoTube", style = MaterialTheme.typography.displaySmall)
         Spacer(Modifier.height(Spacing.S))

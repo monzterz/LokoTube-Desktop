@@ -735,7 +735,7 @@ fun ImmersivePlayer(app: AppState, state: PlayerState) {
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.TopStart).padding(Spacing.XL)) {
-                Image(painterResource("icons/logo_mark.xml"), null, modifier = Modifier.size(Size.Logo))
+                Image(painterResource("icons/logo_mark.png"), null, modifier = Modifier.size(Size.Logo))
                 Spacer(Modifier.width(Spacing.M))
                 Text("LokoTube", style = MaterialTheme.typography.titleLarge)
             }

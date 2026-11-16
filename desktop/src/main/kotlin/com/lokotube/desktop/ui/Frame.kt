@@ -164,7 +164,7 @@ fun TitleBar(app: AppState, search: TextFieldValue, onSearchChange: (TextFieldVa
     Box(with(WindowChrome) { Modifier.windowDragArea() }.fillMaxWidth().height(Size.TitleBar)) {
         val start = if (Os.isMac) Size.MacWindowButtons else Spacing.M
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterStart).padding(start = start)) {
-            Image(painterResource("icons/logo_mark.xml"), "LokoTube", modifier = Modifier.size(Size.TitleLogo))
+            Image(painterResource("icons/logo_mark.png"), "LokoTube", modifier = Modifier.size(Size.TitleLogo))
             Spacer(Modifier.width(Spacing.S))
             Text("LokoTube", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.width(Spacing.L))
