@@ -1,71 +1,55 @@
-<p align="center">
-  <img src="docs/assets/banner.png" alt="LokoTube: Find your sound." width="100%">
-</p>
+<div align="center">
 
-<p align="center">
-  <a href="../../releases/latest"><img alt="Version 2.4.2" src="https://img.shields.io/badge/version-2.4.2-2EE6C5?style=for-the-badge&labelColor=12161A"></a>
-  <img alt="Android, Windows, macOS, Linux" src="https://img.shields.io/badge/Android%20%7C%20Windows%20%7C%20macOS%20%7C%20Linux-12161A?style=for-the-badge">
-  <a href="LICENSE"><img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-12161A?style=for-the-badge"></a>
-</p>
+# LokoTube Desktop
 
-<p align="center">
-  <b>LokoTube</b> is a fast, clean YouTube Music player for your phone and your computer.<br>
-  Sign in once, and your library, playlists and history follow you everywhere, with no ads and no clutter.
-</p>
+<img src="docs/icon.png" width="200" alt="LokoTube Icon" />
 
-<p align="center">
-  <a href="../../releases/latest"><img alt="Download for Android" src="https://img.shields.io/badge/Download-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white"></a>
-  <a href="../../releases/latest"><img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows-0078D4?style=for-the-badge&logo=windows11&logoColor=white"></a>
-  <a href="../../releases/latest"><img alt="Download for macOS" src="https://img.shields.io/badge/Download-macOS-000000?style=for-the-badge&logo=apple&logoColor=white"></a>
-  <a href="../../releases/latest"><img alt="Download for Linux" src="https://img.shields.io/badge/Download-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black"></a>
-</p>
+<br/>
+
+**A desktop YouTube Music client for Windows, macOS & Linux — ad-free playback, synced lyrics, downloads, and one account that stays in sync with your phone.**
+
+[![Version](https://img.shields.io/github/v/release/monzterz/LokoTube-Desktop?style=flat-square&label=Version&color=0D9488)](https://github.com/monzterz/LokoTube-Desktop/releases/latest)
+[![Platforms](https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Linux-12161A?style=flat-square)](https://github.com/monzterz/LokoTube-Desktop/releases/latest)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](LICENSE)
+
+<br/>
+
+[**Download Latest Release**](https://github.com/monzterz/LokoTube-Desktop/releases/latest)
+
+</div>
 
 ---
 
-## ✨ Why LokoTube
+> **LokoTube Desktop is a fork of [Sonara](https://github.com/rashiiddsr/sonara) by [Rashid (@rashiiddsr)](https://github.com/rashiiddsr) — itself based on [Metrolist](https://github.com/MetrolistGroup/Metrolist) — continued and developed independently. The original authors are credited below.**
 
-- **All of YouTube Music, none of the noise.** Your library, liked songs, playlists, mixes and recommendations, without ads or distractions.
-- **One account, every device.** What you like, save or play on your phone shows up on your computer, and the other way round.
-- **Lyrics that keep up.** Synced lyrics from eight sources, lit word by word when the song has it, and translated into your language by AI.
-- **Made for each screen.** A light Android app, and a real desktop app for Windows, macOS and Linux, not a website in a window.
+## Features
 
-## 🎧 Features
+- **Ad-free playback** — YouTube Music streaming with no ads and no clutter
+- **One account, every device** — sign in once; your library, playlists, likes and history stay in sync with the LokoTube phone app
+- **Synced lyrics** — word-by-word lyrics from eight sources, with optional AI translation into your language
+- **Full player & mini player** — a full-screen player with big lyrics, plus an always-on-top mini player
+- **Sound** — equalizer, crossfade, volume normalization and mono audio
+- **Downloads** — keep songs for offline listening
+- **Radio & autoplay** — endless music from any song or artist
+- **Playlists** — create, edit, reorder and import from a link
+- **Sleep timer** — stop after a set time or at the end of the song
+- **Media keys** — system media controls on Windows, macOS and Linux (GNOME/KDE)
+- **Tray & menu bar** — keep playing from the tray or menu bar, and start at sign-in
 
-| | |
-|---|---|
-| 🔐 **Google sign-in** | Your YouTube Music account, with library, likes, playlists and history kept in sync |
-| 🔎 **Search** | Songs, albums, artists, playlists and podcasts, with suggestions as you type |
-| 🏠 **Home and Browse** | Recommendations, mixes, charts, moods and genres |
-| 🎤 **Lyrics** | Eight sources, synced line by line or word by word |
-| 🌐 **AI lyric translation** | Built in: turn it on in Settings, choose a language, and lyrics are translated as they load |
-| 📻 **Radio and autoplay** | Endless music from any song or artist |
-| ⬇️ **Downloads** | Keep songs for offline listening |
-| 📝 **Playlists** | Create, edit, reorder, collaborate with friends, and import from a link |
-| 🌙 **Sleep timer** | Stop after a set time or at the end of the song |
-| 🔊 **Sound** | Normalized volume and mono audio |
+---
 
-**On Android** — Google Cast to your TV or speaker, song recognition for what's playing around you,
-and the system's media controls on the lock screen and in notifications.
+## Download
 
-**On Windows, macOS and Linux** — a full-screen player with a turning record and big lyrics, a mini
-player that stays on top, an equalizer, crossfade, media keys and the system's media controls,
-keyboard shortcuts, playing on from the tray or menu bar, and opening at sign-in.
+[**Download Latest Release**](https://github.com/monzterz/LokoTube-Desktop/releases/latest)
 
-## 📥 Install
+Windows 10/11 (64-bit) · macOS 12+ (Apple Silicon & Intel) · Linux (64-bit .deb / AppImage)
 
-Download the file for your device from the [latest release](../../releases/latest).
+---
+
+## Install
 
 <details>
-<summary><b>Android</b> · <code>LokoTube-2.4.2.apk</code> · Android 8.0 or newer</summary>
-
-1. Open the APK on your phone.
-2. If asked, allow your browser or file manager to install apps.
-3. Tap **Install**. A newer version installs over the old one and keeps your data.
-
-</details>
-
-<details>
-<summary><b>Windows</b> · <code>LokoTube-2.4.2.msi</code> · Windows 10 or 11, 64-bit</summary>
+<summary><b>Windows</b> · <code>.msi</code></summary>
 
 1. Run the MSI. If SmartScreen appears, choose **More info → Run anyway**.
 2. Follow the installer; it installs for your user, no administrator needed.
@@ -74,15 +58,13 @@ Download the file for your device from the [latest release](../../releases/lates
 </details>
 
 <details>
-<summary><b>macOS</b> · <code>LokoTube-2.4.2-mac-arm64.dmg</code> or <code>LokoTube-2.4.2-mac-intel.dmg</code> · macOS 12 or newer</summary>
+<summary><b>macOS</b> · <code>.dmg</code></summary>
 
-Take **arm64** for a Mac with Apple Silicon (M1 and later), **intel** for an Intel Mac. Not sure?
-Apple menu → **About This Mac**: "Chip Apple M…" is Apple Silicon, "Processor Intel" is Intel.
+Take **arm64** for Apple Silicon (M1 and later), **intel** for Intel. Not sure? Apple menu → **About This Mac**.
 
 1. Open the DMG and drag **LokoTube** into **Applications**.
-2. Open LokoTube. The app isn't signed by Apple, so macOS asks first: go to
-   **System Settings → Privacy & Security** and click **Open Anyway**.
-3. If macOS says the app is damaged or can't be opened, run this once in Terminal:
+2. Open LokoTube. The app isn't signed by Apple, so macOS asks first: go to **System Settings → Privacy & Security** and click **Open Anyway**.
+3. If macOS says the app is damaged or can't be opened, run once in Terminal:
 
    ```bash
    sudo xattr -dr com.apple.quarantine /Applications/LokoTube.app
@@ -91,37 +73,35 @@ Apple menu → **About This Mac**: "Chip Apple M…" is Apple Silicon, "Processo
 </details>
 
 <details>
-<summary><b>Linux</b> · <code>LokoTube-2.4.2-linux-amd64.deb</code> or <code>LokoTube-2.4.2-linux-x86_64.AppImage</code> · 64-bit PC</summary>
+<summary><b>Linux</b> · <code>.deb</code> / <code>.AppImage</code></summary>
 
-**Debian, Ubuntu, Linux Mint and the like:** install the .deb, by opening it or with
-
-```bash
-sudo apt install ./LokoTube-2.4.2-linux-amd64.deb
-```
-
-LokoTube then shows in your apps. A newer .deb installs over the old one and keeps your data.
-
-**Any other distribution:** the AppImage runs as it is, no installing needed:
+**Debian, Ubuntu, Linux Mint and the like** — install the .deb:
 
 ```bash
-chmod +x LokoTube-2.4.2-linux-x86_64.AppImage
-./LokoTube-2.4.2-linux-x86_64.AppImage
+sudo apt install ./LokoTube-*-linux-amd64.deb
 ```
 
-Signing in opens Google's page in **Google Chrome, Chromium, Microsoft Edge, Brave or Vivaldi**
-(Firefox can't be used for it), so one of them needs to be installed. What plays shows in GNOME's
-and KDE's media controls, and the media keys work through them.
+**Any other distribution** — the AppImage runs as-is:
+
+```bash
+chmod +x LokoTube-*-linux-x86_64.AppImage
+./LokoTube-*-linux-x86_64.AppImage
+```
+
+Signing in opens Google's page in Chrome, Chromium, Edge, Brave or Vivaldi (Firefox can't be used for it), so one of them needs to be installed.
 
 </details>
 
-## ⌨️ Desktop shortcuts
+---
+
+## Keyboard shortcuts
 
 `Ctrl` on Windows and Linux, `⌘` on a Mac.
 
 | Keys | Does |
 |---|---|
 | `Ctrl/⌘ K` | Search |
-| `Space` or `K` | Play / pause |
+| `Space` / `K` | Play / pause |
 | `Ctrl/⌘ →` / `Ctrl/⌘ ←` | Next / previous song |
 | `→` / `←` | Forward / back 5 seconds |
 | `L` / `J` | Forward / back 10 seconds |
@@ -133,32 +113,33 @@ and KDE's media controls, and the media keys work through them.
 | `Ctrl/⌘ S` / `Ctrl/⌘ R` | Shuffle / repeat |
 | `Ctrl/⌘ D` | Like the song |
 | `Ctrl/⌘ ,` | Settings |
-| `Alt ←` / `Alt →` | Back / forward between pages |
 
-## 🛠️ Build from source
+---
 
-You need JDK 21; the Android app also needs the Android SDK. The AI translator works out of the
-box: its key is built in, sealed, so there is nothing to set up.
+## Build
+
+Requires JDK 21; the Android app also needs the Android SDK.
 
 ```bash
 ./gradlew :app:assembleFossRelease        # Android APK
 ./gradlew -p desktop packageInstaller     # Windows installer (on Windows)
 ./gradlew -p desktop packageDmg           # macOS disk image (on a Mac)
-./gradlew -p desktop packageDeb           # Linux .deb (on Linux; desktop/linux/make_appimage.sh for the AppImage)
+./gradlew -p desktop packageDeb           # Linux .deb (on Linux)
 ./gradlew -p desktop run                  # run the desktop app
 ```
 
-No Mac or Linux at hand? The **macOS app** and **Linux app** workflows in the **Actions** tab build
-them on GitHub's machines. More notes are in [AGENTS.md](AGENTS.md).
+No Mac or Linux at hand? The macOS and Linux app workflows in the **Actions** tab build them on GitHub's machines. More notes are in [AGENTS.md](AGENTS.md).
 
-## 💚 Credits
+---
 
-LokoTube is based on [**Metrolist**](https://github.com/MetrolistGroup/Metrolist). Thank you to the
-Metrolist project for the foundation this app is built on.
+## Disclaimer
 
-## 📄 License
+LokoTube Desktop is an independent, open-source project and is **not affiliated with or endorsed by Google LLC or YouTube**. All content is streamed directly from YouTube's servers for personal use. Provided "as is" under the GPL-3.0 license without warranty; users are responsible for complying with YouTube's Terms of Service and applicable copyright laws.
 
-LokoTube is free software under the [GNU General Public License v3.0](LICENSE).
+---
 
-LokoTube is not affiliated with YouTube, YouTube Music, Google or Metrolist. Playback uses YouTube's
-unofficial API and may stop working when YouTube changes it.
+## License
+
+Original code Copyright (C) 2026 [Rashid (@rashiiddsr)](https://github.com/rashiiddsr), based on [Metrolist](https://github.com/MetrolistGroup/Metrolist). Licensed under GPLv3. See [LICENSE](LICENSE).
+
+LokoTube Desktop modifications are also licensed under GPL-3.0.
