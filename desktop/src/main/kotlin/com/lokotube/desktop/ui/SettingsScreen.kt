@@ -138,6 +138,7 @@ fun SettingsScreen(app: AppState) {
                     SwitchRow("High quality audio", "Uses more data per song.", Settings.highQuality)
                     SwitchRow("Normalize volume", "Turns loud songs down so they match the rest.", Settings.normalize)
                     SwitchRow("Mono audio", "Plays the same sound in both ears.", Settings.mono)
+                    SwitchRow("Skip sponsored parts", "Jumps over sponsor, intro and outro segments marked by the SponsorBlock community.", Settings.sponsorBlock)
                     SwitchRow("Autoplay", "When the queue ends, carries on with similar songs.", Settings.autoplay)
                     val seconds = Settings.crossfadeSeconds.value
                     SettingRow("Crossfade", if (seconds == 0) "Off" else "$seconds seconds between songs") {

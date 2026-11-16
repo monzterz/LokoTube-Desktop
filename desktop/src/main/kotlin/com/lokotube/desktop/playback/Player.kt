@@ -9,6 +9,7 @@ import com.lokotube.desktop.data.History
 import com.lokotube.desktop.data.Settings
 import com.lokotube.innertube.YouTube
 import com.lokotube.innertube.models.SongItem
+import com.lokotube.innertube.models.SponsorSegment
 import com.lokotube.innertube.models.WatchEndpoint
 import com.lokotube.music.utils.YouTubeWebSession
 import kotlinx.coroutines.CancellationException
@@ -19,6 +20,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -111,6 +116,29 @@ class Player(private val scope: CoroutineScope) {
 
     /** Apart from [state]: it changes many times a second, and few screens read it. */
     val position: StateFlow<Long> = mutablePosition.asStateFlow()
+
+    /** SponsorBlock segments of the current song; empty while off or still fetching. */
+    @Volatile private var sponsorSegments: List<SponsorSegment> = emptyList()
+
+    init {
+        // Fetch segments whenever the current song changes.
+        scope.launch(Dispatchers.Default) {
+            state.map { it.current?.id }.distinctUntilChanged().collectLatest { videoId ->
+                sponsorSegments = emptyList()
+                if (videoId == null || !Settings.sponsorBlock.value) return@collectLatest
+                sponsorSegments = YouTube.sponsorSegments(videoId).filter { it.skippable }
+            }
+        }
+        // Jump over a segment the moment playback enters it.
+        scope.launch(Dispatchers.Default) {
+            position.collect { positionMs ->
+                val segments = sponsorSegments
+                if (segments.isEmpty() || !Settings.sponsorBlock.value) return@collect
+                val hit = segments.lastOrNull { it.contains(positionMs / 1000f) }
+                if (hit != null) seek((hit.end * 1000f).toLong())
+            }
+        }
+    }
 
     private var loadJob: Job? = null
     private var radioJob: Job? = null

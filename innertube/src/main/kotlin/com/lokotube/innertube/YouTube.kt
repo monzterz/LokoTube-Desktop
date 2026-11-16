@@ -20,6 +20,8 @@ import com.lokotube.innertube.models.Runs
 import com.lokotube.innertube.models.SearchSuggestions
 import com.lokotube.innertube.models.SectionListRenderer
 import com.lokotube.innertube.models.SongItem
+import com.lokotube.innertube.models.SponsorBlockSkipCategories
+import com.lokotube.innertube.models.SponsorSegment
 import com.lokotube.innertube.models.WatchEndpoint
 import com.lokotube.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.lokotube.innertube.models.YTItem
@@ -139,6 +141,11 @@ object YouTube {
         }
 
     fun extractionTransport(): InnerTube.ExtractionTransport = innerTube.extractionTransport()
+
+    suspend fun sponsorSegments(
+        videoId: String,
+        categories: List<String> = SponsorBlockSkipCategories,
+    ): List<SponsorSegment> = innerTube.sponsorSegments(videoId, categories)
 
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions> =
         runCatching {
