@@ -255,7 +255,7 @@ private fun VolumeControl(state: PlayerState, player: Player, width: Dp = VOLUME
 
 /** The bar along the bottom of the window. */
 @Composable
-fun PlayerBar(app: AppState, state: PlayerState, hazeState: HazeState) {
+fun PlayerBar(app: AppState, state: PlayerState, hazeState: HazeState, modifier: Modifier = Modifier) {
     val player = app.player
     val colors = MaterialTheme.colorScheme
     val track = state.current
@@ -275,7 +275,7 @@ fun PlayerBar(app: AppState, state: PlayerState, hazeState: HazeState) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier =
-            Modifier
+            modifier
                 .fillMaxWidth()
                 .height(Size.PlayerBar)
                 .hazeBlur(input = HazeInput.Backdrop(hazeState), style = glassStyle)

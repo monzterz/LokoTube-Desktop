@@ -558,7 +558,7 @@ private fun App(app: AppState) {
                         }
                     }
                 }
-                PlayerBar(app, state, hazeState)
+                PlayerBar(app, state, hazeState, Modifier.align(Alignment.BottomCenter))
             }
         }
         if (searchOpen) {
