@@ -2,6 +2,8 @@ package com.lokotube.innertube
 
 import com.lokotube.innertube.models.MediaInfo
 import com.lokotube.innertube.models.ReturnYouTubeDislikeResponse
+import com.lokotube.innertube.models.SponsorBlockSkipCategories
+import com.lokotube.innertube.models.SponsorSegment
 import com.lokotube.innertube.models.YouTubeClient
 import com.lokotube.innertube.models.YouTubeLocale
 import com.lokotube.innertube.models.response.NextResponse
@@ -381,6 +383,20 @@ class InnerTube(
                 contentType(ContentType.Application.Json)
             }
         }
+
+    /** Fetches the community-marked skippable segments for [videoId]. Empty on any failure. */
+    suspend fun sponsorSegments(
+        videoId: String,
+        categories: List<String> = SponsorBlockSkipCategories,
+    ): List<SponsorSegment> =
+        runCatching {
+            val list = categories.joinToString(",") { "\"$it\"" }
+            withRetry {
+                httpClient.get("https://sponsor.ajay.app/api/skipSegments?videoID=$videoId&categories=[$list]") {
+                    contentType(ContentType.Application.Json)
+                }
+            }.body<List<SponsorSegment>>()
+        }.getOrDefault(emptyList())
 
     private suspend fun <T> withRetry(
         maxAttempts: Int = 3,
