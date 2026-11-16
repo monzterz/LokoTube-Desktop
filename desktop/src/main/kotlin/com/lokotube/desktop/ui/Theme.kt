@@ -10,6 +10,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import com.lokotube.desktop.data.Settings
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -218,6 +219,18 @@ fun Modifier.glass(shape: Shape = ErShape.Pill): Modifier {
             ),
         )
         .border(1.dp, edge, shape)
+}
+
+/** Frosted strip for the bottom player bar: translucent fill, top sheen and a 1px top edge. */
+@Composable
+fun Modifier.glassBar(): Modifier {
+    val dark = LocalIsDark.current
+    val fill = if (dark) Color.White.copy(alpha = 0.07f) else Color.White.copy(alpha = 0.50f)
+    val sheen = if (dark) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.30f)
+    val edge = if (dark) Color.White.copy(alpha = 0.14f) else Color.White.copy(alpha = 0.80f)
+    return background(fill)
+        .background(Brush.verticalGradient(0f to sheen, 0.5f to Color.Transparent))
+        .drawBehind { drawLine(edge, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = 1.dp.toPx()) }
 }
 
 private const val GLOW_CENTER_X = 700f

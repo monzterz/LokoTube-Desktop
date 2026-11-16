@@ -256,7 +256,7 @@ fun PlayerBar(app: AppState, state: PlayerState) {
     var menuAt by remember { mutableStateOf<IntOffset?>(null) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().height(Size.PlayerBar).padding(horizontal = Spacing.L),
+        modifier = Modifier.fillMaxWidth().height(Size.PlayerBar).glassBar().padding(horizontal = Spacing.L),
     ) {
         Box(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.onRightClick { menuAt = it }) {
