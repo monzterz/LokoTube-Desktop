@@ -6,9 +6,9 @@
         android:shortcutId="search"
         android:shortcutShortLabel="@string/search">
         <intent
-            android:action="com.metrolist.music.action.SEARCH"
-            android:targetClass="com.metrolist.music.MainActivity"
-            android:targetPackage="com.ermusic.android" />
+            android:action="com.lokotube.music.action.SEARCH"
+            android:targetClass="com.lokotube.music.MainActivity"
+            android:targetPackage="com.lokotube.android" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -16,9 +16,9 @@
         android:shortcutId="liked"
         android:shortcutShortLabel="@string/liked_songs">
         <intent
-            android:action="com.metrolist.music.action.OPEN_WIDGET_TARGET"
-            android:targetClass="com.metrolist.music.MainActivity"
-            android:targetPackage="com.ermusic.android">
+            android:action="com.lokotube.music.action.OPEN_WIDGET_TARGET"
+            android:targetClass="com.lokotube.music.MainActivity"
+            android:targetPackage="com.lokotube.android">
             <extra android:name="widget_target_type" android:value="liked" />
         </intent>
     </shortcut>
@@ -28,9 +28,9 @@
         android:shortcutId="downloaded"
         android:shortcutShortLabel="@string/downloaded_songs">
         <intent
-            android:action="com.metrolist.music.action.OPEN_WIDGET_TARGET"
-            android:targetClass="com.metrolist.music.MainActivity"
-            android:targetPackage="com.ermusic.android">
+            android:action="com.lokotube.music.action.OPEN_WIDGET_TARGET"
+            android:targetClass="com.lokotube.music.MainActivity"
+            android:targetPackage="com.lokotube.android">
             <extra android:name="widget_target_type" android:value="downloaded" />
         </intent>
     </shortcut>
@@ -40,8 +40,8 @@
         android:shortcutId="library"
         android:shortcutShortLabel="@string/filter_library">
         <intent
-            android:action="com.metrolist.music.action.LIBRARY"
-            android:targetClass="com.metrolist.music.MainActivity"
-            android:targetPackage="com.ermusic.android" />
+            android:action="com.lokotube.music.action.LIBRARY"
+            android:targetClass="com.lokotube.music.MainActivity"
+            android:targetPackage="com.lokotube.android" />
     </shortcut>
 </shortcuts>

@@ -53,7 +53,7 @@
     <string name="er_about_creator">Tentang</string>
     <string name="er_about_license">Lisensi</string>
     <string name="er_about_based_on">Berdasarkan</string>
-    <string name="er_about_disclaimer">Sonara tidak berafiliasi dengan YouTube, YouTube Music, atau Google. Pemutaran bergantung pada API tidak resmi YouTube dan bisa berhenti berfungsi saat YouTube mengubahnya.</string>
+    <string name="er_about_disclaimer">LokoTube tidak berafiliasi dengan YouTube, YouTube Music, atau Google. Pemutaran bergantung pada API tidak resmi YouTube dan bisa berhenti berfungsi saat YouTube mengubahnya.</string>
     <string name="er_seconds">%1$d dtk</string>
     <string name="er_crossfade">Crossfade</string>
     <string name="er_normalize_volume">Samakan volume</string>
@@ -124,7 +124,7 @@
     <string name="er_add_a_song">Tambah lagu</string>
     <string name="er_playlist_saved">Playlist disimpan</string>
     <string name="er_playlist_save_failed">Sebagian perubahan gagal disimpan. Coba lagi.</string>
-    <string name="er_playlist_saved_cover_local">Playlist disimpan. YouTube menolak cover-nya, jadi cover hanya tampil di Sonara.</string>
+    <string name="er_playlist_saved_cover_local">Playlist disimpan. YouTube menolak cover-nya, jadi cover hanya tampil di LokoTube.</string>
     <string name="er_suggestions">Saran</string>
     <string name="er_take_photo">Ambil foto</string>
     <string name="er_choose_photo">Pilih dari galeri</string>
@@ -171,13 +171,13 @@
     <string name="er_queued_episodes">Episode yang Anda antrekan</string>
     <string name="er_playlist_deleted">Playlist dihapus</string>
     <string name="er_playlist_delete_failed">YouTube tidak menghapus playlist ini</string>
-    <string name="er_open_links">Jadikan Sonara aplikasi musik default</string>
+    <string name="er_open_links">Jadikan LokoTube aplikasi musik default</string>
     <string name="er_open_links_failed">Pengaturan link tidak bisa dibuka</string>
     <string name="er_new">Baru</string>
     <string name="er_new_playlist_desc">Kumpulkan lagu, video, dan podcast</string>
     <string name="er_import_playlist">Impor playlist</string>
     <string name="er_import_playlist_desc">Salin playlist dari link YouTube Music</string>
-    <string name="er_lyrics_signature" translatable="false">Sonara</string>
+    <string name="er_lyrics_signature" translatable="false">LokoTube</string>
     <string name="er_artists_more">%1$s, %2$s &amp; %3$d lainnya</string>
     <string name="er_swiped_play_next">Diputar berikutnya</string>
     <string name="er_swiped_queue">Ditambahkan ke antrean</string>
@@ -198,7 +198,7 @@
     <string name="er_ai_translator">Penerjemah AI</string>
     <string name="er_ai_translator_desc">Terjemahkan lirik otomatis, baris demi baris</string>
     <string name="er_translate_to">Terjemahkan ke</string>
-    <string name="er_mic_permission">Izinkan mikrofon di pengaturan aplikasi Sonara untuk memakai fitur ini</string>
+    <string name="er_mic_permission">Izinkan mikrofon di pengaturan aplikasi LokoTube untuk memakai fitur ini</string>
     <string name="er_lyrics_translated">Diterjemahkan otomatis, bisa kurang tepat</string>
     <string name="er_lyrics_license">Lirik milik penulis lagu dan penerbitnya. Ditampilkan untuk penggunaan pribadi, non-komersial.</string>
     <string name="er_now_playing_fullscreen">Sedang diputar, layar penuh</string>

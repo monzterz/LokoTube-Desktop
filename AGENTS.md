@@ -31,7 +31,7 @@ in `docs/perf.md`; never write numbers that were not measured.
 - Scope: the app intentionally has no social/companion integrations (Discord, Last.fm, Listen
   Together, Spotify, alarms, updater). Do not re-add them.
 - Experiment, requested by the owner and needing Google Play services: Google Cast
-  (`playback/SonaraCast.kt`, Default Media Receiver). Keep it isolated so it can be removed.
+  (`playback/LokoTubeCast.kt`, Default Media Receiver). Keep it isolated so it can be removed.
 - Experiment, requested by the owner: song recognition through Shazam's unofficial endpoint
   (`recognition/`, `com.metrolist.shazamkit`, `ui/screens/search/SongRecognitionSheet.kt`). It
   names recordings playing nearby, not sung or hummed tunes, and may stop working if Shazam
@@ -64,17 +64,17 @@ the cookies over the local debugging port; the session is stored encrypted with 
 is the built-in sealed one, into generated code under `build/`. `window/WindowChrome.kt` hands the
 title bar's space to the app over JNA and keeps the native frame (resize, snap). Bump
 `appVersion` for every installer. The Android app's lyric sources are compiled as they are
-(`fromAndroid` in the build file, with small stand-ins under `src/main/kotlin/android/`). `SONARA_GUEST=1` skips sign-in for development.
+(`fromAndroid` in the build file, with small stand-ins under `src/main/kotlin/android/`). `LOKOTUBE_GUEST=1` skips sign-in for development.
 
-Data and removal: on Windows the data lives in `%LOCALAPPDATA%\Sonara Data`, apart from the program
-folder (`%LOCALAPPDATA%\Sonara`), because jpackage's uninstaller empties the program folder
+Data and removal: on Windows the data lives in `%LOCALAPPDATA%\LokoTube Data`, apart from the program
+folder (`%LOCALAPPDATA%\LokoTube`), because jpackage's uninstaller empties the program folder
 (RemoveFolderEx) and every update runs the old version's uninstaller; up to 2.4.1 the data sat in
-`Sonara\data` and the 2.4.2 installer moves it out first (`wix/main.wxs`). The installer also closes
+`LokoTube\data` and the 2.4.2 installer moves it out first (`wix/main.wxs`). The installer also closes
 the running app itself, and on a real uninstall asks keep / back up then delete / delete through
-`runtimein\javaw.exe ... com.ermusic.desktop.UninstallMain` (not Sonara.exe, which runs the app in a
+`runtimein\javaw.exe ... com.ermusic.desktop.UninstallMain` (not LokoTube.exe, which runs the app in a
 second process the installer wouldn't wait for); `SONARA_DATA=keep|delete` answers silent uninstalls.
 Under the installer HKCU is not the user's: name the user's hive as `HKU\[UserSID]`. A Mac and Linux
-have no uninstaller, so Settings has Uninstall Sonara; every platform has Back up and Restore
+have no uninstaller, so Settings has Uninstall LokoTube; every platform has Back up and Restore
 (`data/Backup.kt`, never the sign-in).
 
 The same app runs on macOS, with nothing left out; `Os.kt` says where it runs, and each Windows piece
@@ -82,9 +82,9 @@ has a Mac counterpart: the app drawn under a see-through title bar with the traf
 (`WindowChrome`), the session sealed with a key in the login keychain (`auth/MacKeychain.kt`), media
 keys and Control Center through Now Playing (`window/MacNowPlaying.kt`), Quit, Settings and the Dock
 icon (`window/MacApp.kt`), a launch agent for opening at login (`window/StartAtLogin.kt`), Command
-for Ctrl, data in `~/Library/Application Support/Sonara`. On a Mac, `./gradlew -p desktop packageDmg`
+for Ctrl, data in `~/Library/Application Support/LokoTube`. On a Mac, `./gradlew -p desktop packageDmg`
 makes the .dmg. From Windows, `stageAppJars -Psonara.natives=macosx-arm64` and `mac/make_app.py`
-with a Temurin JRE put an unsigned `Sonara.app` in a .zip. GitHub Actions (`mac.yml`) builds the
+with a Temurin JRE put an unsigned `LokoTube.app` in a .zip. GitHub Actions (`mac.yml`) builds the
 .dmg for Apple Silicon and for Intel on tags `v*`.
 
 It runs on Linux too, with nothing left out: the native title bar stays (each desktop draws its
@@ -92,7 +92,7 @@ own), media controls and keys through MPRIS on the session bus (`window/LinuxMpr
 bus of its own over TCP), the session key in the keyring through `secret-tool` or else a file only
 the user can read (`auth/LinuxKeyring.kt`), sign-in through an installed Chromium browser, Snap ones
 with a profile under `~/snap` (`auth/EdgeSignIn.kt`), an autostart entry, data in
-`$XDG_DATA_HOME/Sonara`, and a window class equal to the menu entry `sonara-Sonara`
+`$XDG_DATA_HOME/LokoTube`, and a window class equal to the menu entry `lokotube-LokoTube`
 (`window/LinuxDesktop.kt`), so the dock shows the right icon. The tray setting only shows where there
 is a tray (GNOME has none). `./gradlew -p desktop packageDeb` and `linux/make_appimage.sh` package
 it; GitHub Actions (`linux.yml`) builds both on Ubuntu 22.04 and starts the app once to check it.

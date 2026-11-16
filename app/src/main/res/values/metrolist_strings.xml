@@ -35,7 +35,7 @@
     <string name="share_lyrics">Share lyrics</string>
     <string name="share_as_text">Share as text</string>
     <string name="share_as_image">Share as image</string>
-    <string name="utaloom_lyrics_signature">made with Sonara</string>
+    <string name="utaloom_lyrics_signature">made with LokoTube</string>
     <string name="max_selection_limit">Maximum selection limit reached</string>
     <string name="share_selected">Share selected</string>
     <string name="customize_colors">Customize colors</string>
@@ -415,14 +415,14 @@
     <!-- Widget strings -->
     <string name="album_art">Album art</string>
     <string name="no_song_playing">No song playing</string>
-    <string name="tap_to_open">Tap to open Metrolist</string>
+    <string name="tap_to_open">Tap to open LokoTube</string>
     <string name="previous">Previous</string>
     <string name="play_pause">Play/Pause</string>
     <string name="player_pause">Pause</string>
     <string name="next">Next</string>
     <string name="like">Like</string>
     <string name="not_playing">No song playing</string>
-    <string name="tap_to_play">Tap to open Metrolist</string>
+    <string name="tap_to_play">Tap to open LokoTube</string>
     <string name="widget_description">Music player widget with playback controls</string>
     <string name="turntable_widget_description">Circular music widget with play and like controls</string>
     <string name="widget_music_player">Music Player</string>
@@ -437,7 +437,7 @@
     <string name="crash_description">An unexpected error occurred. Please share the crash report to help us fix the issue</string>
     <string name="crash_share_logs">Share logs</string>
     <string name="crash_share_title">Share crash report</string>
-    <string name="crash_report_subject">Metrolist crash report</string>
+    <string name="crash_report_subject">LokoTube crash report</string>
     <string name="crash_close">Close</string>
     <string name="crash_no_log">No crash log available</string>
 
@@ -512,7 +512,7 @@
     <string name="credits_view_repo">View repository</string>
     <string name="buy_mo_a_coffee">Buy me a coffee!</string>
     <string name="community_and_info">Community &amp; Info</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">LOKOTUBE</string>
     <string name="wanna_play_favorite_song">Want to play their favorite song?</string>
     <string name="yeah">Yeah!</string>
     <string name="stands_with_palestine">This project stands with Palestine 🇵🇸</string>
@@ -627,8 +627,8 @@
     <string name="top_result">Top result</string>
     <string name="other">Other</string>
     <string name="utaloom_name" translatable="false">Utaloom Android</string>
-    <string name="utaloom_tap_to_open" translatable="false">Tap to open Sonara</string>
-    <string name="utaloom_crash_report_subject" translatable="false">Sonara crash report</string>
+    <string name="utaloom_tap_to_open" translatable="false">Tap to open LokoTube</string>
+    <string name="utaloom_crash_report_subject" translatable="false">LokoTube crash report</string>
     <string name="utaloom_maintainer" translatable="false">Utaloom maintainer</string>
     <string name="utaloom_attribution" translatable="false">Based on open-source work from Metrolist. Source attribution does not imply affiliation or endorsement.</string>
     <string name="utaloom_independent_notice" translatable="false">Independently maintained by Rashid. Not affiliated with Metro Group, Metrolist, or MetrolistGroup.</string>

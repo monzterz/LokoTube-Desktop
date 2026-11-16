@@ -53,7 +53,7 @@ tasks.register("sealTranslatorKey") {
     }
 }
 
-val baseApplicationId = "com.ermusic.android"
+val baseApplicationId = "com.lokotube.android"
 val applicationIdOverride = System.getenv("ERMUSIC_APPLICATION_ID")?.takeIf { it.isNotBlank() }
 val appNameOverride = System.getenv("ERMUSIC_APP_NAME")?.takeIf { it.isNotBlank() }
 val buildCommit =
@@ -79,7 +79,7 @@ plugins {
 }
 
 android {
-    namespace = "com.metrolist.music"
+    namespace = "com.lokotube.music"
     compileSdk = 37
 
     defaultConfig {
@@ -91,7 +91,7 @@ android {
         val baseVersionName = requireNotNull(versionName)
         buildConfigField("String", "BASE_VERSION_NAME", "\"$baseVersionName\"")
         buildCommit?.let { versionName = "$baseVersionName+$it" }
-        resValue("string", "app_name", appNameOverride ?: "Sonara")
+        resValue("string", "app_name", appNameOverride ?: "LokoTube")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -176,7 +176,7 @@ android {
             }
             isDebuggable = true
             if (appNameOverride == null) {
-                resValue("string", "app_name", "Sonara Debug")
+                resValue("string", "app_name", "LokoTube Debug")
             }
             signingConfig =
                 if (workflowDebugKeystoreFile != null) {

@@ -36,7 +36,7 @@ dependencyResolutionManagement {
 }
 
 // F-Droid doesn't support foojay-resolver plugin
-rootProject.name = "SONARA"
+rootProject.name = "LokoTube"
 include(":app")
 include(":innertube")
 include(":baselineprofile")

@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ermusic.macrobenchmark"
+    namespace = "com.lokotube.macrobenchmark"
     compileSdk = 37
 
     defaultConfig {

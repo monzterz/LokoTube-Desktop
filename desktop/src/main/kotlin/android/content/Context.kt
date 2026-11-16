@@ -7,7 +7,7 @@ package android.content
 
 /** The little of Android's Context that the shared lyric sources touch. */
 class Context {
-    val packageName = "com.ermusic.desktop"
+    val packageName = "com.lokotube.desktop"
     val packageManager = PackageManager()
 }
 

@@ -54,7 +54,7 @@
     <string name="er_about_creator">About</string>
     <string name="er_about_license">License</string>
     <string name="er_about_based_on">Based on</string>
-    <string name="er_about_disclaimer">Sonara is not affiliated with YouTube, YouTube Music or Google. Playback relies on YouTube\'s unofficial API and may stop working when YouTube changes it.</string>
+    <string name="er_about_disclaimer">LokoTube is not affiliated with YouTube, YouTube Music or Google. Playback relies on YouTube\'s unofficial API and may stop working when YouTube changes it.</string>
     <string name="er_seconds">%1$d s</string>
     <string name="er_crossfade">Crossfade</string>
     <string name="er_normalize_volume">Normalize volume</string>
@@ -81,7 +81,7 @@
     <string name="er_recent_searches">Recent searches</string>
     <string name="er_clear_all">Clear all</string>
     <string name="er_close">Close</string>
-    <string name="er_brand" translatable="false">Sonara</string>
+    <string name="er_brand" translatable="false">LokoTube</string>
     <string name="er_tagline">Find your sound.</string>
     <string name="er_eq_custom">Custom</string>
     <string name="er_eq_reset">Reset</string>
@@ -126,7 +126,7 @@
     <string name="er_add_a_song">Add a song</string>
     <string name="er_playlist_saved">Playlist saved</string>
     <string name="er_playlist_save_failed">Couldn\'t save all changes. Try again.</string>
-    <string name="er_playlist_saved_cover_local">Playlist saved. YouTube didn\'t accept the cover, so it only shows in Sonara.</string>
+    <string name="er_playlist_saved_cover_local">Playlist saved. YouTube didn\'t accept the cover, so it only shows in LokoTube.</string>
     <string name="er_suggestions">Suggestions</string>
     <string name="er_take_photo">Take photo</string>
     <string name="er_choose_photo">Choose from gallery</string>
@@ -173,13 +173,13 @@
     <string name="er_queued_episodes">Your queued episodes</string>
     <string name="er_playlist_deleted">Playlist deleted</string>
     <string name="er_playlist_delete_failed">YouTube did not delete this playlist</string>
-    <string name="er_open_links">Set Sonara as default music app</string>
+    <string name="er_open_links">Set LokoTube as default music app</string>
     <string name="er_open_links_failed">Could not open the link settings</string>
     <string name="er_new">New</string>
     <string name="er_new_playlist_desc">Collect songs, videos and podcasts</string>
     <string name="er_import_playlist">Import playlist</string>
     <string name="er_import_playlist_desc">Copy a playlist from a YouTube Music link</string>
-    <string name="er_lyrics_signature" translatable="false">Sonara</string>
+    <string name="er_lyrics_signature" translatable="false">LokoTube</string>
     <string name="er_artists_more">%1$s, %2$s &amp; %3$d more</string>
     <string name="er_swiped_play_next">Plays next</string>
     <string name="er_swiped_queue">Added to queue</string>
@@ -200,7 +200,7 @@
     <string name="er_ai_translator">AI translator</string>
     <string name="er_ai_translator_desc">Translate lyrics automatically, line by line</string>
     <string name="er_translate_to">Translate into</string>
-    <string name="er_mic_permission">Allow the microphone in Sonara\'s app settings to use this</string>
+    <string name="er_mic_permission">Allow the microphone in LokoTube\'s app settings to use this</string>
     <string name="er_lyrics_translated">Translated automatically, it may not be exact</string>
     <string name="er_lyrics_license">Lyrics belong to their songwriters and publishers. Shown for personal, non-commercial use.</string>
     <string name="er_now_playing_fullscreen">Now playing, full screen</string>
@@ -212,6 +212,6 @@
     <string name="er_no_podcasts_message">Shows you save show up here, under your episodes.</string>
     <string name="er_voice_unavailable">Voice search needs a speech service on this device, such as the Google app.</string>
     <string name="er_type_song">Song</string>
-    <string name="er_shared_from">Shared from Sonara</string>
+    <string name="er_shared_from">Shared from LokoTube</string>
     <string name="er_share_listen">Listen on</string>
 </resources>

@@ -47,7 +47,7 @@ val generateSecrets by tasks.registering {
     // The built-in key, sealed (see app/build.gradle.kts); a key in local.properties takes its place.
     val sealedFile = rootProject.file("../secrets/translator.sealed")
     if (sealedFile.exists()) inputs.file(sealedFile)
-    val target = secretsDir.map { it.file("com/ermusic/desktop/BuildSecrets.kt") }
+    val target = secretsDir.map { it.file("com/lokotube/desktop/BuildSecrets.kt") }
     if (source.exists()) inputs.file(source)
     outputs.file(target)
     doLast {
@@ -57,7 +57,7 @@ val generateSecrets by tasks.registering {
         file.parentFile.mkdirs()
         file.writeText(
             """
-            package com.ermusic.desktop
+            package com.lokotube.desktop
 
             internal object BuildSecrets {
                 private const val AI_KEY_SEALED = "${setting("SONARA_AI_KEY", "").let { if (it.isNotEmpty()) sealKey(it) else sealedFile.takeIf { f -> f.isFile }?.readText()?.trim().orEmpty() }}"
@@ -74,7 +74,7 @@ kotlin.sourceSets["main"].kotlin.srcDir(generateSecrets.map { secretsDir.get() }
 
 // The Android app's lyric sources and parser, compiled as they are (see android/ and music/utils here).
 val fromAndroid by tasks.registering(Sync::class) {
-    from("../app/src/main/kotlin/com/metrolist") {
+    from("../app/src/main/kotlin/com/lokotube") {
         include("kugou/**", "lrclib/**", "paxsenix/**", "music/betterlyrics/**")
         include("music/utils/YouTubeWebSession.kt", "music/utils/YouTubePlaylistEditor.kt")
         listOf(
@@ -151,23 +151,23 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.ermusic.desktop.MainKt"
+        mainClass = "com.lokotube.desktop.MainKt"
         // The Mac's title bar and menus follow its light or dark appearance; Windows ignores these.
-        jvmArgs += listOf("-Xmx512m", "-Dfile.encoding=UTF-8", "-Dapple.awt.application.appearance=system", "-Dapple.awt.application.name=Sonara")
-        // Linux: the window's class names it after the menu entry, so the dock shows Sonara's icon (LinuxDesktop.kt).
+        jvmArgs += listOf("-Xmx512m", "-Dfile.encoding=UTF-8", "-Dapple.awt.application.appearance=system", "-Dapple.awt.application.name=LokoTube")
+        // Linux: the window's class names it after the menu entry, so the dock shows LokoTube's icon (LinuxDesktop.kt).
         if (buildsOnLinux) jvmArgs += "--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED"
         nativeDistributions {
             // Each system builds its own: Windows the .msi and .exe, a Mac the .dmg, Linux the .deb
             // (and the AppImage, from the app folder: linux/make_appimage.sh).
             targetFormats(TargetFormat.Msi, TargetFormat.Exe, TargetFormat.Dmg, TargetFormat.Deb)
-            packageName = "Sonara"
+            packageName = "LokoTube"
             // Bumped for every installer: Windows only upgrades to a higher version.
             packageVersion = appVersion
-            vendor = "Sonara"
-            // On Windows this becomes Sonara.exe's description, which Task Manager shows as the
-            // app's name, so there it is "Sonara"; the installer still says "Find your song"
+            vendor = "LokoTube"
+            // On Windows this becomes LokoTube.exe's description, which Task Manager shows as the
+            // app's name, so there it is "LokoTube"; the installer still says "Find your song"
             // (packageInstaller). On a Mac and Linux it is the package's and menu entry's comment.
-            description = if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) "Sonara" else "Find your song"
+            description = if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) "LokoTube" else "Find your song"
             licenseFile.set(project.file("../LICENSE"))
             modules(
                 "java.instrument", "java.management", "java.naming", "java.net.http", "java.sql",
@@ -177,7 +177,7 @@ compose.desktop {
             )
             windows {
                 iconFile.set(project.file("icon.ico"))
-                menuGroup = "Sonara"
+                menuGroup = "LokoTube"
                 shortcut = true
                 dirChooser = true
                 perUserInstall = true
@@ -186,8 +186,8 @@ compose.desktop {
             }
             macOS {
                 iconFile.set(project.file("icon.icns"))
-                bundleID = "app.sonara.desktop"
-                dockName = "Sonara"
+                bundleID = "app.lokotube.desktop"
+                dockName = "LokoTube"
                 appCategory = "public.app-category.music"
                 packageVersion = appVersion
                 dmgPackageVersion = appVersion
@@ -195,11 +195,11 @@ compose.desktop {
             }
             linux {
                 iconFile.set(project.file("src/main/resources/icon.png"))
-                // The menu entry is sonara-Sonara.desktop; LinuxDesktop.WINDOW_CLASS must match it.
-                packageName = "sonara"
+                // The menu entry is lokotube-LokoTube.desktop; LinuxDesktop.WINDOW_CLASS must match it.
+                packageName = "lokotube"
                 packageVersion = appVersion
                 debPackageVersion = appVersion
-                debMaintainer = "Sonara <sonara@users.noreply.github.com>"
+                debMaintainer = "LokoTube <lokotube@users.noreply.github.com>"
                 menuGroup = "AudioVideo;Audio;Player"
                 appCategory = "sound"
                 shortcut = true
@@ -209,7 +209,7 @@ compose.desktop {
 }
 
 // Windows: keep java.exe and javaw.exe in the bundled runtime. The installer runs the uninstall
-// question with javaw.exe (UninstallMain.kt): through Sonara.exe it would not wait for the answer.
+// question with javaw.exe (UninstallMain.kt): through LokoTube.exe it would not wait for the answer.
 // The setting is internal to the Compose plugin, hence the reflection.
 if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
     tasks.withType<org.jetbrains.compose.desktop.application.tasks.AbstractJLinkTask>().configureEach {
@@ -227,7 +227,7 @@ tasks.register<Sync>("stageAppJars") {
     into(layout.buildDirectory.dir("stage/$nativePlatform"))
 }
 
-// The installer: jpackage's own, from wix/main.wxs, with Sonara's pictures and "Open Sonara" at the end.
+// The installer: jpackage's own, from wix/main.wxs, with LokoTube's pictures and "Open LokoTube" at the end.
 tasks.register<Exec>("packageInstaller") {
     dependsOn("createDistributable", "unzipWix")
     val output = layout.buildDirectory.dir("compose/binaries/main/msi").get().asFile
@@ -244,16 +244,16 @@ tasks.register<Exec>("packageInstaller") {
         tool.path,
         "--type", "msi",
         "--dest", output.path,
-        "--name", "Sonara",
-        "--app-image", layout.buildDirectory.dir("compose/binaries/main/app/Sonara").get().asFile.path,
+        "--name", "LokoTube",
+        "--app-image", layout.buildDirectory.dir("compose/binaries/main/app/LokoTube").get().asFile.path,
         "--app-version", appVersion,
-        "--vendor", "Sonara",
+        "--vendor", "LokoTube",
         "--description", "Find your song",
         "--license-file", project.file("../LICENSE").path,
         "--resource-dir", wixResources.path,
         "--win-per-user-install",
         "--win-menu",
-        "--win-menu-group", "Sonara",
+        "--win-menu-group", "LokoTube",
         "--win-shortcut",
         "--win-dir-chooser",
         "--win-upgrade-uuid", "6f3b1c52-8a4e-4c1b-9d57-2e7c5a90b1d3",

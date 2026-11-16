@@ -7,4 +7,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "sonara-desktop"
+rootProject.name = "lokotube-desktop"

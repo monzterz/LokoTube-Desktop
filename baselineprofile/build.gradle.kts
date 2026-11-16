@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ermusic.baselineprofile"
+    namespace = "com.lokotube.baselineprofile"
     compileSdk = 37
 
     defaultConfig {
