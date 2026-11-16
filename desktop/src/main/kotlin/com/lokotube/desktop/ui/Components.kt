@@ -105,6 +105,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.lokotube.desktop.data.BlockedChannels
 import com.lokotube.desktop.data.Settings
 import com.lokotube.desktop.playback.Credit
 import com.lokotube.desktop.playback.toTrack
@@ -116,6 +117,7 @@ import com.lokotube.innertube.models.PlaylistItem
 import com.lokotube.innertube.models.PodcastItem
 import com.lokotube.innertube.models.SongItem
 import com.lokotube.innertube.models.YTItem
+import com.lokotube.innertube.models.blockIds
 import kotlinx.coroutines.launch
 
 @Composable
@@ -235,7 +237,9 @@ private const val HINT_DELAY_MS = 500
 
 /** Whether the user's content settings let this item show. */
 fun YTItem.allowed(): Boolean =
-    !(Settings.hideExplicit.value && explicit) && !(Settings.hideVideos.value && this is SongItem && isVideoSong)
+    !(Settings.hideExplicit.value && explicit) &&
+        !(Settings.hideVideos.value && this is SongItem && isVideoSong) &&
+        blockIds.none { BlockedChannels.contains(it) }
 
 @Composable
 fun Loading(modifier: Modifier = Modifier) {

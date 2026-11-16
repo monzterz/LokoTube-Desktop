@@ -90,6 +90,7 @@ private fun ColumnScope.TrackItems(track: Track, app: AppState, row: PlaylistRow
     extra?.invoke(this, onDismiss)
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     track.artistId?.let { id -> AppMenuItem("Go to artist", "person") { act { app.go(Route.Artist(id)) } } }
+    track.artistId?.let { id -> AppMenuItem("Block this artist", "block") { act { app.blockArtist(id, track.allCredits.firstOrNull()?.name ?: track.artists) } } }
     track.albumId?.let { id -> AppMenuItem("Go to album", "album") { act { app.go(Route.Album(id)) } } }
     AppMenuItem("Copy link", "link") { act { app.copyLink(track.shareLink) } }
 }
@@ -131,6 +132,7 @@ fun ItemMenu(item: YTItem, app: AppState, at: IntOffset?, row: PlaylistRow? = nu
             } else {
                 item.radioEndpoint?.let { endpoint -> AppMenuItem("Radio", "radio") { act { app.openRadio(item.title, item.thumbnail, endpoint) } } }
                 AppMenuItem("Shuffle", "shuffle") { act { app.playItem(item, shuffle = true) } }
+                AppMenuItem("Block this channel", "block") { act { app.blockArtist(item.channelId ?: item.id, item.title) } }
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             if (item is PlaylistItem && item.isEditable) {

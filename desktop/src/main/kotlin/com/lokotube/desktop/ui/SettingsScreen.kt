@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.lokotube.desktop.data.BlockedChannels
 import com.lokotube.desktop.data.Downloads
 import com.lokotube.desktop.data.Pref
 import com.lokotube.desktop.data.Settings
@@ -279,6 +280,17 @@ fun SettingsScreen(app: AppState) {
                             ) { Text("Switch") }
                             Spacer(Modifier.width(Spacing.S))
                             OutlinedButton(onClick = app.onSignOut, modifier = Modifier.handCursor()) { Text("Sign out") }
+                        }
+                    }
+                }
+            }
+            item(key = "blocked", contentType = "group") {
+                if (BlockedChannels.channels.isNotEmpty()) {
+                    Group("Blocked channels") {
+                        BlockedChannels.channels.forEach { blocked ->
+                            SettingRow(blocked.name, "Hidden from Home and search") {
+                                TextButton(onClick = { app.unblockArtist(blocked.id) }, modifier = Modifier.handCursor()) { Text("Unblock") }
+                            }
                         }
                     }
                 }

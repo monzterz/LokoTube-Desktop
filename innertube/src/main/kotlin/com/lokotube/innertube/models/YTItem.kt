@@ -180,3 +180,15 @@ fun <T : YTItem> List<T>.filterYoutubeShorts(enabled: Boolean = false) =
     } else {
         this
     }
+
+/** The artist/channel ids that identify who this item belongs to, used for blocking. */
+val YTItem.blockIds: List<String>
+    get() =
+        when (this) {
+            is SongItem -> artists.mapNotNull { it.id }
+            is AlbumItem -> artists.orEmpty().mapNotNull { it.id }
+            is PlaylistItem -> listOfNotNull(author?.id)
+            is ArtistItem -> listOfNotNull(channelId, id)
+            is PodcastItem -> listOfNotNull(channelId, author?.id)
+            is EpisodeItem -> listOfNotNull(author?.id)
+        }

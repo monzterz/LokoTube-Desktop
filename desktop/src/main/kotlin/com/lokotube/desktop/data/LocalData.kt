@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import com.lokotube.desktop.AppFiles
 import com.lokotube.desktop.playback.SongCache
 import com.lokotube.desktop.playback.Track
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
@@ -65,6 +66,31 @@ private val json = Json { ignoreUnknownKeys = true }
 
 private fun <T> readList(file: File, read: (String) -> List<T>): List<T> =
     runCatching { read(file.readText()) }.getOrDefault(emptyList())
+
+@Serializable
+data class BlockedChannel(val id: String, val name: String)
+
+/** Artists/channels the user hid from Home, search and recommendations. */
+object BlockedChannels {
+    private val serializer = ListSerializer(BlockedChannel.serializer())
+    private val file = File(AppFiles.root, "blocked_channels.json")
+    val channels = mutableStateListOf<BlockedChannel>().apply { addAll(readList(file) { json.decodeFromString(serializer, it) }) }
+
+    private fun save() = file.writeText(json.encodeToString(serializer, channels.toList()))
+
+    fun contains(id: String): Boolean = channels.any { it.id == id }
+
+    fun block(id: String, name: String) {
+        if (channels.none { it.id == id }) {
+            channels.add(BlockedChannel(id, name))
+            save()
+        }
+    }
+
+    fun unblock(id: String) {
+        if (channels.removeAll { it.id == id }) save()
+    }
+}
 
 /** What was played on this computer, newest first. */
 object History {
