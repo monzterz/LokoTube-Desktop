@@ -66,4 +66,11 @@ object AccountStore {
         YouTube.authUser = account?.authUser ?: "0"
         if (account != null) YouTube.visitorData = account.visitorData
     }
+
+    /** Points YouTube at another channel of the same sign-in and keeps it for the next start. */
+    fun switchChannel(dataSyncId: String) {
+        val updated = load()?.copy(dataSyncId = dataSyncId) ?: return
+        save(updated)
+        use(updated)
+    }
 }

@@ -59,6 +59,8 @@ import com.lokotube.desktop.playback.SongCache
 import com.lokotube.desktop.Os
 import com.lokotube.desktop.keepsPlayingInTray
 import com.lokotube.desktop.window.StartAtLogin
+import com.lokotube.innertube.YouTube
+import com.lokotube.innertube.models.YouTubeAccount
 import kotlin.math.roundToInt
 
 @Composable
@@ -122,8 +124,49 @@ fun SettingsScreen(app: AppState) {
     var startsAtLogin by remember { mutableStateOf(StartAtLogin.enabled()) }
     var restoreReady by remember { mutableStateOf(false) }
     var uninstalling by remember { mutableStateOf(false) }
+    var channels by remember { mutableStateOf<List<YouTubeAccount>>(emptyList()) }
+    var switchingChannel by remember { mutableStateOf(false) }
     if (restoreReady) RestoreReadyDialog(app) { restoreReady = false }
     if (uninstalling) UninstallDialog(app) { uninstalling = false }
+    if (switchingChannel) {
+        AlertDialog(
+            onDismissRequest = { switchingChannel = false },
+            title = { Text("Switch channel") },
+            text = {
+                if (channels.isEmpty()) {
+                    Text("Loading…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    Column {
+                        channels.forEach { account ->
+                            val current =
+                                account.dataSyncId?.substringBefore("||") == YouTube.dataSyncId ||
+                                    account.pageId == YouTube.dataSyncId
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(ErShape.Medium)
+                                    .clickable {
+                                        app.switchChannel(account.dataSyncId?.substringBefore("||") ?: account.pageId ?: "")
+                                        switchingChannel = false
+                                    }
+                                    .padding(vertical = Spacing.S, horizontal = Spacing.XS),
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(account.name, style = MaterialTheme.typography.bodyLarge)
+                                    account.byline?.takeIf { it.isNotBlank() }?.let {
+                                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
+                                if (current) Icon(icon("check"), null, tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { switchingChannel = false }) { Text("Cancel") } },
+        )
+    }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         ScrollingColumn(Modifier.widthIn(max = Layout.ReadingMaxWidth).fillMaxSize(), contentPadding = PaddingValues(horizontal = Spacing.L, vertical = Spacing.L)) {
             item(key = "title", contentType = "title") { Text("Settings", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.padding(start = Spacing.S, bottom = Spacing.L)) }
@@ -226,7 +269,17 @@ fun SettingsScreen(app: AppState) {
             item(key = "account", contentType = "group") {
                 Group("Account") {
                     SettingRow(app.profile?.name ?: "Google account", app.profile?.email) {
-                        OutlinedButton(onClick = app.onSignOut, modifier = Modifier.handCursor()) { Text("Sign out") }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedButton(
+                                onClick = {
+                                    app.scope.launch { channels = YouTube.accountsList().getOrDefault(emptyList()) }
+                                    switchingChannel = true
+                                },
+                                modifier = Modifier.handCursor(),
+                            ) { Text("Switch") }
+                            Spacer(Modifier.width(Spacing.S))
+                            OutlinedButton(onClick = app.onSignOut, modifier = Modifier.handCursor()) { Text("Sign out") }
+                        }
                     }
                 }
             }

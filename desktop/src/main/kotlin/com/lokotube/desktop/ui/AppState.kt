@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.lokotube.desktop.auth.AccountStore
 import com.lokotube.desktop.data.Downloads
 import com.lokotube.desktop.playback.Credit
 import com.lokotube.desktop.playback.Player
@@ -203,6 +204,18 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
             profile = YouTube.accountInfo().getOrNull()
             syncFromAccount(force = true)
         }
+    }
+
+    /** Switches the active channel and reloads everything the account colours. */
+    fun switchChannel(dataSyncId: String) {
+        AccountStore.switchChannel(dataSyncId)
+        home.sections.clear()
+        home.chips = emptyList()
+        home.continuation = null
+        home.loaded = false
+        home.loadedChip = null
+        home.failed = false
+        loadAccount()
     }
 
     /** Brings in what changed on the account elsewhere, such as on the phone. */
