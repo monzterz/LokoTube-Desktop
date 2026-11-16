@@ -6,6 +6,7 @@
 package com.lokotube.desktop.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.draw.clip
@@ -18,10 +19,12 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -156,6 +159,9 @@ private val LightColors =
         onError = Color.White,
     )
 
+/** Whether the current theme is dark; glass and scrims read it for their tint. */
+val LocalIsDark = staticCompositionLocalOf { false }
+
 @Composable
 fun LokotubeTheme(forceDark: Boolean = false, content: @Composable () -> Unit) {
     val dark =
@@ -172,7 +178,11 @@ fun LokotubeTheme(forceDark: Boolean = false, content: @Composable () -> Unit) {
         shapes = Shapes(small = ErShape.Small, medium = ErShape.Medium, large = ErShape.Large),
     ) {
         // Screens sit straight on the backdrop, with no Surface to set the text colour.
-        CompositionLocalProvider(LocalContentColor provides colors.onSurface, content = content)
+        CompositionLocalProvider(
+            LocalIsDark provides dark,
+            LocalContentColor provides colors.onSurface,
+            content = content,
+        )
     }
 }
 
@@ -192,6 +202,23 @@ fun Modifier.appBackdrop(): Modifier {
 /** A panel of the window without the glow. */
 @Composable
 fun Modifier.panel(): Modifier = clip(ErShape.Medium).background(MaterialTheme.colorScheme.surfaceContainerLow)
+
+/** Frosted-glass surface: translucent fill, crisp 1px edge and a top sheen. */
+@Composable
+fun Modifier.glass(shape: Shape = ErShape.Pill): Modifier {
+    val dark = LocalIsDark.current
+    val fill = if (dark) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.55f)
+    val edge = if (dark) Color.White.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.85f)
+    return clip(shape)
+        .background(fill)
+        .background(
+            Brush.verticalGradient(
+                0f to Color.White.copy(alpha = if (dark) 0.10f else 0.35f),
+                0.5f to Color.Transparent,
+            ),
+        )
+        .border(1.dp, edge, shape)
+}
 
 private const val GLOW_CENTER_X = 700f
 private const val GLOW_RADIUS = 1100f

@@ -207,9 +207,12 @@ fun ListSkeleton(rows: Int = 10) {
 }
 
 @Composable
-fun SymbolButton(name: String, description: String, modifier: Modifier = Modifier, tint: Color = MaterialTheme.colorScheme.onSurface, iconSize: Dp = Size.Icon, onClick: () -> Unit) {
+fun SymbolButton(name: String, description: String, modifier: Modifier = Modifier, tint: Color = MaterialTheme.colorScheme.onSurface, iconSize: Dp = Size.Icon, glass: Boolean = false, onClick: () -> Unit) {
     Hint(description) {
-        IconButton(onClick = onClick, modifier = modifier.handCursor()) {
+        IconButton(
+            onClick = onClick,
+            modifier = modifier.then(if (glass) Modifier.glass(CircleShape) else Modifier).handCursor(),
+        ) {
             Icon(icon(name), contentDescription = description, tint = tint, modifier = Modifier.size(iconSize))
         }
     }

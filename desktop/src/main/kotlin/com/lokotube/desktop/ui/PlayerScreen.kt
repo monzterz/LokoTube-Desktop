@@ -54,6 +54,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -175,16 +176,15 @@ private fun SeekBar(state: PlayerState, player: Player, modifier: Modifier = Mod
 
 @Composable
 private fun PlayPause(state: PlayerState, player: Player, size: Dp) {
-    FilledIconButton(
+    val colors = MaterialTheme.colorScheme
+    IconButton(
         onClick = player::toggle,
-        colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
-        shape = CircleShape,
-        modifier = Modifier.size(size).handCursor(),
+        modifier = Modifier.size(size).glass(CircleShape).handCursor(),
     ) {
         if (state.loading) {
-            CircularProgressIndicator(strokeWidth = Spacing.XXS, color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(size / 2))
+            CircularProgressIndicator(strokeWidth = Spacing.XXS, color = colors.primary, modifier = Modifier.size(size / 2))
         } else {
-            Icon(icon(if (state.playing) "pause" else "play"), if (state.playing) "Pause" else "Play", modifier = Modifier.size(size / 2))
+            Icon(icon(if (state.playing) "pause" else "play"), if (state.playing) "Pause" else "Play", tint = colors.primary, modifier = Modifier.size(size / 2))
         }
     }
 }
@@ -194,9 +194,9 @@ private fun Transport(state: PlayerState, player: Player, playSize: Dp = PLAY_IN
     val colors = MaterialTheme.colorScheme
     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
         SymbolButton("shuffle", "Shuffle", tint = if (state.shuffle) colors.primary else colors.onSurfaceVariant, iconSize = Size.IconSmall, onClick = player::toggleShuffle)
-        SymbolButton("skip_previous", "Previous", onClick = player::previous)
+        SymbolButton("skip_previous", "Previous", glass = true, onClick = player::previous)
         PlayPause(state, player, playSize)
-        SymbolButton("skip_next", "Next", onClick = player::next)
+        SymbolButton("skip_next", "Next", glass = true, onClick = player::next)
         SymbolButton(
             if (state.repeat == Repeat.One) "repeat_one" else "repeat",
             "Repeat",
@@ -658,9 +658,9 @@ private fun SpreadTransport(state: PlayerState, player: Player, modifier: Modifi
     val colors = MaterialTheme.colorScheme
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = modifier.fillMaxWidth()) {
         SymbolButton("shuffle", "Shuffle", tint = if (state.shuffle) colors.primary else colors.onSurfaceVariant, iconSize = Size.IconSmall, onClick = player::toggleShuffle)
-        SymbolButton("skip_previous", "Previous", onClick = player::previous)
+        SymbolButton("skip_previous", "Previous", glass = true, onClick = player::previous)
         PlayPause(state, player, Size.IconButton + Spacing.S)
-        SymbolButton("skip_next", "Next", onClick = player::next)
+        SymbolButton("skip_next", "Next", glass = true, onClick = player::next)
         SymbolButton(
             if (state.repeat == Repeat.One) "repeat_one" else "repeat",
             "Repeat",
@@ -788,9 +788,9 @@ fun MiniPlayerContent(app: AppState, state: PlayerState) {
             } else {
                 Spacer(Modifier.weight(1f))
             }
-            SymbolButton("skip_previous", "Previous", Modifier.size(Size.Control), onClick = player::previous)
+            SymbolButton("skip_previous", "Previous", Modifier.size(Size.Control), glass = true, onClick = player::previous)
             PlayPause(state, player, Size.Control + Spacing.XS)
-            SymbolButton("skip_next", "Next", Modifier.size(Size.Control), onClick = player::next)
+            SymbolButton("skip_next", "Next", Modifier.size(Size.Control), glass = true, onClick = player::next)
             SymbolButton("mini_player", "Back to LokoTube", Modifier.size(Size.Control), tint = MaterialTheme.colorScheme.primary, iconSize = Size.IconSmall) { app.miniPlayer = false }
         }
     }
