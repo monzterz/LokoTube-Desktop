@@ -289,7 +289,7 @@
     <string name="lyrics_provider_selection_desc">Pilih penyedia lirik yang ingin diaktifkan</string>
     <string name="lyrics_provider_priority">Prioritas penyedia lirik</string>
     <string name="lyrics_provider_priority_desc">Seret untuk mengurutkan ulang penyedia berdasarkan preferensi. Posisi lebih tinggi berarti prioritas lebih tinggi</string>
-    <string name="github_releases_url">https://github.com/MetrolistGroup/Metrolist/releases</string>
+    <string name="github_releases_url">https://github.com/monzterz/LokoTube-Desktop/releases</string>
     <string name="set_as_default">Jadikan default</string>
     <string name="sleep_timer_default_set">Timer tidur default diatur ke %d menit</string>
     <string name="enable_automatic_sleeptimer">Aktifkan pengatur waktu tidur otomatis</string>

@@ -246,7 +246,7 @@
     <string name="default_links">Open supported links</string>
     <string name="open_app_settings_error">Couldn\'t open the app settings</string>
 
-    <string name="github_releases_url">https://github.com/MetrolistGroup/Metrolist/releases</string>
+    <string name="github_releases_url">https://github.com/monzterz/LokoTube-Desktop/releases</string>
 
     <string name="all_time">All time</string>
     <string name="past_24_hours">Past 24 hours</string>
