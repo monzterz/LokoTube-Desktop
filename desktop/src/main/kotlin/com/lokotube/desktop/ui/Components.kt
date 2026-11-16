@@ -33,6 +33,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -103,6 +105,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.lokotube.desktop.data.BlockedChannels
@@ -286,7 +289,18 @@ fun ScrollingColumn(
     content: LazyListScope.() -> Unit,
 ) {
     Box(modifier) {
-        LazyColumn(state = state, contentPadding = contentPadding, modifier = Modifier.fillMaxSize(), content = content)
+        LazyColumn(
+            state = state,
+            contentPadding =
+                PaddingValues(
+                    start = contentPadding.calculateStartPadding(LayoutDirection.Ltr),
+                    top = contentPadding.calculateTopPadding(),
+                    end = contentPadding.calculateEndPadding(LayoutDirection.Ltr),
+                    bottom = contentPadding.calculateBottomPadding() + Size.PlayerBar + Spacing.L,
+                ),
+            modifier = Modifier.fillMaxSize(),
+            content = content,
+        )
         VerticalScrollbar(
             adapter = rememberScrollbarAdapter(state),
             style = LocalScrollbarStyle.current.copy(

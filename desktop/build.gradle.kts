@@ -116,6 +116,8 @@ dependencies {
         },
     )
     implementation(compose.material3)
+    implementation("dev.chrisbanes.haze:haze:2.0.1")
+    implementation("dev.chrisbanes.haze:haze-blur:2.0.1")
     implementation("com.github.MetrolistGroup.innertubex:innertubex:v0.7.4")
     implementation("io.ktor:ktor-client-core:$ktor")
     implementation("io.ktor:ktor-client-okhttp:$ktor")

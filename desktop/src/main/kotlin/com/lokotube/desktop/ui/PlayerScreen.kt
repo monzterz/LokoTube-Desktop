@@ -78,7 +78,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.blur.HazeBlurStyle
+import dev.chrisbanes.haze.blur.HazeColorEffect
+import dev.chrisbanes.haze.blur.hazeBlur
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.TransformOrigin
@@ -249,14 +255,32 @@ private fun VolumeControl(state: PlayerState, player: Player, width: Dp = VOLUME
 
 /** The bar along the bottom of the window. */
 @Composable
-fun PlayerBar(app: AppState, state: PlayerState) {
+fun PlayerBar(app: AppState, state: PlayerState, hazeState: HazeState) {
     val player = app.player
     val colors = MaterialTheme.colorScheme
     val track = state.current
+    val dark = LocalIsDark.current
     var menuAt by remember { mutableStateOf<IntOffset?>(null) }
+    val glassStyle =
+        remember(dark) {
+            HazeBlurStyle {
+                blurEnabled(true)
+                blurRadius(24.dp)
+                backgroundColor(if (dark) Color.Black.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.45f))
+                colorEffects(listOf(HazeColorEffect.tint(Color.White.copy(alpha = if (dark) 0.06f else 0.3f))))
+                noiseFactor(0.04f)
+            }
+        }
+    val edge = if (dark) Color.White.copy(alpha = 0.14f) else Color.White.copy(alpha = 0.8f)
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().height(Size.PlayerBar).glassBar().padding(horizontal = Spacing.L),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(Size.PlayerBar)
+                .hazeBlur(input = HazeInput.Backdrop(hazeState), style = glassStyle)
+                .drawBehind { drawLine(edge, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = 1.dp.toPx()) }
+                .padding(horizontal = Spacing.L),
     ) {
         Box(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.onRightClick { menuAt = it }) {

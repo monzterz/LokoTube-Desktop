@@ -126,6 +126,10 @@ import com.lokotube.desktop.ui.LokotubeTheme
 import com.lokotube.desktop.ui.Spacing
 import com.lokotube.desktop.ui.TitleBar
 import com.lokotube.desktop.ui.appBackdrop
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import com.lokotube.desktop.ui.handCursor
 import com.lokotube.desktop.window.LinuxDesktop
 import com.lokotube.desktop.window.MacApp
@@ -539,20 +543,23 @@ private fun App(app: AppState) {
                 }
             },
     ) {
+        val hazeState = rememberHazeState()
         Column(Modifier.fillMaxSize()) {
             TitleBar(app, search, { search = it }, { if (it) searchOpen = true }, { searchOpen = false }, focus)
-            Row(Modifier.weight(1f).fillMaxWidth().padding(horizontal = Spacing.S), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Sidebar(app)
-                CenterPane(app, state, Modifier.weight(1f).fillMaxHeight())
-                if (state.current != null) {
-                    when (app.sidePanel) {
-                        SidePanel.NowPlaying -> NowPlayingPanel(app, state)
-                        SidePanel.Queue -> QueuePanel(app, state)
-                        null -> CollapsedPanel(app)
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                Row(Modifier.fillMaxSize().padding(horizontal = Spacing.S).hazeSource(hazeState), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Sidebar(app)
+                    CenterPane(app, state, Modifier.weight(1f).fillMaxHeight())
+                    if (state.current != null) {
+                        when (app.sidePanel) {
+                            SidePanel.NowPlaying -> NowPlayingPanel(app, state)
+                            SidePanel.Queue -> QueuePanel(app, state)
+                            null -> CollapsedPanel(app)
+                        }
                     }
                 }
+                PlayerBar(app, state, hazeState)
             }
-            PlayerBar(app, state)
         }
         if (searchOpen) {
             SearchPanel(app, search.text, onClose = {
