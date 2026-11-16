@@ -17,7 +17,7 @@ import javax.crypto.spec.SecretKeySpec
  * The same scheme is used by the desktop app; the two must stay alike.
  */
 internal object SealedKey {
-    private const val PEPPER = "Sonara/lyrics/translator/2026"
+    private const val PEPPER = "LokoTube/lyrics/translator/2026"
     private const val SALT_BYTES = 16
     private const val IV_BYTES = 12
     private const val TAG_BITS = 128

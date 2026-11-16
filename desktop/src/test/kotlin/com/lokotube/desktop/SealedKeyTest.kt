@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -20,9 +20,9 @@ class SealedKeyTest {
     private val expected: String? =
         listOf(File("../local.properties"), File("local.properties"))
             .firstOrNull(File::isFile)
-            ?.let { file -> Properties().apply { file.inputStream().use(::load) }.getProperty("SONARA_AI_KEY")?.trim() }
+            ?.let { file -> Properties().apply { file.inputStream().use(::load) }.getProperty("LOKOTUBE_AI_KEY")?.trim() }
             ?.takeIf { it.isNotEmpty() }
-            ?: System.getenv("SONARA_AI_KEY")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: System.getenv("LOKOTUBE_AI_KEY")?.trim()?.takeIf { it.isNotEmpty() }
 
     @Test
     fun sealedKeyOpensToTheOwnersKey() {

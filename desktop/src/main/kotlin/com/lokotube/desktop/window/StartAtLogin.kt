@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -23,7 +23,7 @@ object StartAtLogin {
     private val executable: String? = System.getenv("APPIMAGE")?.takeIf { Os.isLinux } ?: System.getProperty("jpackage.app-path")
     private val agent = File(System.getProperty("user.home"), "Library/LaunchAgents/$AGENT_LABEL.plist")
     private val autostart =
-        File(System.getenv("XDG_CONFIG_HOME")?.takeIf { it.startsWith("/") } ?: (System.getProperty("user.home") + "/.config"), "autostart/sonara.desktop")
+        File(System.getenv("XDG_CONFIG_HOME")?.takeIf { it.startsWith("/") } ?: (System.getProperty("user.home") + "/.config"), "autostart/lokotube.desktop")
 
     val available: Boolean get() = executable != null && (!Os.isMac || bundle != null)
 

@@ -219,7 +219,7 @@ class SyncUtils @Inject constructor(
     @Volatile private var cachedLastSyncEpoch: Long = 0L
     private val playlistsBeingModified = ConcurrentHashMap<String, AtomicInteger>()
 
-    /** Playlists made in SONARA this session (by id), when; see [executeSyncPlaylist]. */
+    /** Playlists made in LOKOTUBE this session (by id), when; see [executeSyncPlaylist]. */
     private val createdHereAt = ConcurrentHashMap<String, Long>()
 
     /** Playlists being filled right now because the user opened them; the library sync skips them. */
@@ -1519,7 +1519,7 @@ class SyncUtils @Inject constructor(
     private suspend fun executeSyncPlaylist(browseId: String, playlistId: String) = withContext(Dispatchers.IO) {
         Timber.d("syncPlaylist: Starting sync for browseId=$browseId, playlistId=$playlistId")
 
-        // A playlist made in SONARA, or one being edited, is ahead of YouTube for a while (adds
+        // A playlist made in LOKOTUBE, or one being edited, is ahead of YouTube for a while (adds
         // take time to show up remotely); rewriting it from the remote copy now would empty it.
         // Only playlists made here count: one that came from the account (a new device, a fresh
         // sync) has its songs on YouTube and is filled at once. Its createdAt is when it arrived
@@ -1671,8 +1671,8 @@ class SyncUtils @Inject constructor(
     }
 
     /**
-     * Creates the playlist on YouTube, then in SONARA; returns its local id, or null (and nothing
-     * saved) when YouTube refused it. [syncWithYouTube] false makes a SONARA-only playlist.
+     * Creates the playlist on YouTube, then in LOKOTUBE; returns its local id, or null (and nothing
+     * saved) when YouTube refused it. [syncWithYouTube] false makes a LOKOTUBE-only playlist.
      */
     suspend fun createPlaylist(
         playlist: PlaylistEntity,

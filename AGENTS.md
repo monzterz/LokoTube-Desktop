@@ -1,6 +1,6 @@
-# SONARA: notes for contributors and AI agents
+# LOKOTUBE: notes for contributors and AI agents
 
-SONARA is a lean YouTube Music player for Android (Kotlin, Jetpack Compose, Material 3, Media3).
+LOKOTUBE is a lean YouTube Music player for Android (Kotlin, Jetpack Compose, Material 3, Media3).
 It is GPL-3.0 and derives from Metrolist <- InnerTune/OuterTune; the owner credits Metrolist as
 its upstream (README, About). Keep the existing license headers intact.
 
@@ -42,9 +42,9 @@ in `docs/perf.md`; never write numbers that were not measured.
   the whole song numbered and answers only for the lines it translated, so mixed-language songs
   and "ooh" lines are handled. The owner's key is built in, sealed with AES-GCM in
   `secrets/translator.sealed` (opened by `SealedKey.kt` in both apps), so every build has it with
-  nothing to set up and no app holds a readable copy. To change it, put the new `SONARA_AI_KEY` in
+  nothing to set up and no app holds a readable copy. To change it, put the new `LOKOTUBE_AI_KEY` in
   `local.properties` and run `./gradlew :app:sealTranslatorKey --no-configuration-cache`; optional
-  `SONARA_AI_BASE_URL`, `SONARA_AI_MODEL`, `SONARA_AI_FALLBACK_MODELS` (an OpenAI-compatible
+  `LOKOTUBE_AI_BASE_URL`, `LOKOTUBE_AI_MODEL`, `LOKOTUBE_AI_FALLBACK_MODELS` (an OpenAI-compatible
   endpoint, Gemini by default). Users are never asked for a key. AI only: when every model fails,
   lyrics show without a translation. Stored in `lyrics.translatedLyrics`.
 - The app always speaks English, whatever the phone's language, with no setting to change it
@@ -69,10 +69,10 @@ title bar's space to the app over JNA and keeps the native frame (resize, snap).
 Data and removal: on Windows the data lives in `%LOCALAPPDATA%\LokoTube Data`, apart from the program
 folder (`%LOCALAPPDATA%\LokoTube`), because jpackage's uninstaller empties the program folder
 (RemoveFolderEx) and every update runs the old version's uninstaller; up to 2.4.1 the data sat in
-`LokoTube\data` and the 2.4.2 installer moves it out first (`wix/main.wxs`). The installer also closes
+`LokoTube\data` and the 0.1.0 installer moves it out first (`wix/main.wxs`). The installer also closes
 the running app itself, and on a real uninstall asks keep / back up then delete / delete through
 `runtimein\javaw.exe ... com.ermusic.desktop.UninstallMain` (not LokoTube.exe, which runs the app in a
-second process the installer wouldn't wait for); `SONARA_DATA=keep|delete` answers silent uninstalls.
+second process the installer wouldn't wait for); `LOKOTUBE_DATA=keep|delete` answers silent uninstalls.
 Under the installer HKCU is not the user's: name the user's hive as `HKU\[UserSID]`. A Mac and Linux
 have no uninstaller, so Settings has Uninstall LokoTube; every platform has Back up and Restore
 (`data/Backup.kt`, never the sign-in).
@@ -83,7 +83,7 @@ has a Mac counterpart: the app drawn under a see-through title bar with the traf
 keys and Control Center through Now Playing (`window/MacNowPlaying.kt`), Quit, Settings and the Dock
 icon (`window/MacApp.kt`), a launch agent for opening at login (`window/StartAtLogin.kt`), Command
 for Ctrl, data in `~/Library/Application Support/LokoTube`. On a Mac, `./gradlew -p desktop packageDmg`
-makes the .dmg. From Windows, `stageAppJars -Psonara.natives=macosx-arm64` and `mac/make_app.py`
+makes the .dmg. From Windows, `stageAppJars -Plokotube.natives=macosx-arm64` and `mac/make_app.py`
 with a Temurin JRE put an unsigned `LokoTube.app` in a .zip. GitHub Actions (`mac.yml`) builds the
 .dmg for Apple Silicon and for Intel on tags `v*`.
 

@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 
 /**
  * Playlists this account joined as a collaborator. YouTube's library lists them like playlists
- * you follow, so SONARA remembers them to offer "Add a song" there, as YouTube Music does.
+ * you follow, so LOKOTUBE remembers them to offer "Add a song" there, as YouTube Music does.
  */
 object Collaborations {
     fun joined(context: Context): Flow<Set<String>> =

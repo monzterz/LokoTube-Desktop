@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -23,7 +23,7 @@ import java.util.zip.ZipOutputStream
  */
 object Backup {
     /** Marks a LokoTube backup; restoring refuses a .zip without it. */
-    const val MARKER = "sonara-backup.txt"
+    const val MARKER = "lokotube-backup.txt"
 
     /** What a backup holds, relative to the data folder. */
     val included = listOf("settings.properties", "history.json", "searches.json", "speed_dial.json", "downloads.json", "downloads", "lyrics", "translations")

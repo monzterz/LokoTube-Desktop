@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -25,15 +25,15 @@ object AppFiles {
         )
 
     val root: File =
-        // A test copy of the installer keeps its data apart from the real one (-Dsonara.data=...).
-        System.getProperty("sonara.data")?.takeIf { it.isNotBlank() }?.let { File(it).apply { mkdirs() } } ?: if (Os.isMac) {
+        // A test copy of the installer keeps its data apart from the real one (-Dlokotube.data=...).
+        System.getProperty("lokotube.data")?.takeIf { it.isNotBlank() }?.let { File(it).apply { mkdirs() } } ?: if (Os.isMac) {
             File(home, "Library/Application Support/LokoTube").apply { mkdirs() }
         } else if (Os.isLinux) {
             val data = System.getenv("XDG_DATA_HOME")?.takeIf { it.startsWith("/") } ?: "$home/.local/share"
             File(data, "LokoTube").apply { mkdirs() }
         } else {
             // The installer names the user's folder outright (its environment may not be the user's).
-            windowsRoot(File(System.getProperty("sonara.localappdata")?.takeIf { it.isNotBlank() } ?: System.getenv("LOCALAPPDATA") ?: home))
+            windowsRoot(File(System.getProperty("lokotube.localappdata")?.takeIf { it.isNotBlank() } ?: System.getenv("LOCALAPPDATA") ?: home))
         }
 
     /**

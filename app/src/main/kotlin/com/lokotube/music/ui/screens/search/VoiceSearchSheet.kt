@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -61,7 +61,7 @@ import com.lokotube.music.ui.theme.Spacing
 private const val PULSE_MS = 1600
 
 /**
- * Voice search inside the app: the SONARA pulse rings out from the mic while it listens, and the
+ * Voice search inside the app: the LOKOTUBE pulse rings out from the mic while it listens, and the
  * words appear as they are recognized. Uses the platform SpeechRecognizer, so it needs the
  * microphone permission (asked before this sheet opens).
  */

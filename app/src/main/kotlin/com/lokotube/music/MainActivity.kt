@@ -1323,7 +1323,7 @@ class MainActivity : FragmentActivity() {
         openJoinedPlaylist(playlistId, navController)
     }
 
-    /** Opens SONARA's own copy of a joined playlist (where songs can be added) once it is synced. */
+    /** Opens LOKOTUBE's own copy of a joined playlist (where songs can be added) once it is synced. */
     private suspend fun openJoinedPlaylist(
         playlistId: String,
         navController: NavHostController,

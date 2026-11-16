@@ -3,8 +3,8 @@
  * Licensed under GPL-3.0 | See git history for contributors
  *
  * Experiment requested by the owner: AI translation of lyrics. The owner's key is built in from
- * local.properties, sealed so the app holds no readable copy (SONARA_AI_KEY, optional SONARA_AI_BASE_URL, SONARA_AI_MODEL and
- * SONARA_AI_FALLBACK_MODELS; users are never asked for one), for an OpenAI-compatible chat
+ * local.properties, sealed so the app holds no readable copy (LOKOTUBE_AI_KEY, optional LOKOTUBE_AI_BASE_URL, LOKOTUBE_AI_MODEL and
+ * LOKOTUBE_AI_FALLBACK_MODELS; users are never asked for one), for an OpenAI-compatible chat
  * endpoint, Gemini by default. When a model fails, the next one is tried; when all fail, or
  * there is no key, the lyrics simply show without a translation.
  * It is kept in this file and the lyrics page so the feature can be removed in one go.

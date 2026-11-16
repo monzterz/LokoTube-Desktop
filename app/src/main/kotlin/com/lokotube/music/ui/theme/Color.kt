@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -12,7 +12,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
 /**
- * SONARA is named after sonar: a pulse sent out that comes back as an echo. Its mark is a play
+ * LOKOTUBE is named after sonar: a pulse sent out that comes back as an echo. Its mark is a play
  * button sending out echoes, in sonar teal. Two themes: Sonar Night (neutral near-black) and
  * Sonar Day (a bright aqua, never plain white), both with one teal accent.
  */

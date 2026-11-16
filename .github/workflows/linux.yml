@@ -1,13 +1,13 @@
 name: Linux app
 
-# Builds Sonara for Linux (x86_64): a .deb for Debian, Ubuntu and Mint, and an AppImage for the
+# Builds LokoTube for Linux (x86_64): a .deb for Debian, Ubuntu and Mint, and an AppImage for the
 # rest. jpackage only packages for the system it runs on. Built on the older Ubuntu so the .deb's
 # dependencies have the names both older and newer releases know.
 on:
   workflow_dispatch:
     inputs:
       release:
-        description: "Attach the files to this release (a version tag, e.g. v2.4.2); empty: don't"
+        description: "Attach the files to this release (a version tag, e.g. v0.1.0); empty: don't"
         required: false
         default: ""
   push:
@@ -76,23 +76,23 @@ jobs:
           chmod +x appimagetool
           mkdir -p out
           APPIMAGE_EXTRACT_AND_RUN=1 desktop/linux/make_appimage.sh \
-            desktop/build/compose/binaries/main/app/Sonara \
+            desktop/build/compose/binaries/main/app/LokoTube \
             desktop/src/main/resources/icon.png \
-            "out/Sonara-$version-linux-x86_64.AppImage" \
+            "out/LokoTube-$version-linux-x86_64.AppImage" \
             ./appimagetool
-          for f in desktop/build/compose/binaries/main/deb/*.deb; do cp "$f" "out/Sonara-$version-linux-amd64.deb"; done
+          for f in desktop/build/compose/binaries/main/deb/*.deb; do cp "$f" "out/LokoTube-$version-linux-amd64.deb"; done
           ls -la out
 
       - name: Look inside the .deb
         run: |
           deb=$(ls out/*.deb)
           dpkg-deb --info "$deb"
-          dpkg-deb --contents "$deb" | grep -E "\.desktop|bin/Sonara|\.png"
+          dpkg-deb --contents "$deb" | grep -E "\.desktop|bin/LokoTube|\.png"
 
       - name: Start it (signed out), with a desktop bus
         run: |
           chmod +x out/*.AppImage
-          export SONARA_GUEST=1 APPIMAGE_EXTRACT_AND_RUN=1
+          export LOKOTUBE_GUEST=1 APPIMAGE_EXTRACT_AND_RUN=1
           # A session bus on a socket file, as desktops have it (/run/user/<id>/bus).
           dbus-daemon --session --address="unix:path=$RUNNER_TEMP/session-bus" --fork --print-address
           export DBUS_SESSION_BUS_ADDRESS="unix:path=$RUNNER_TEMP/session-bus"
@@ -100,14 +100,14 @@ jobs:
             "$(ls out/*.AppImage)" > out/app.log 2>&1 &
             sleep 40
             import -window root out/linux-window.png
-            echo "--- window class"; if command -v xprop >/dev/null; then xprop -name Sonara WM_CLASS || true; else echo "(xprop not installed)"; fi
+            echo "--- window class"; if command -v xprop >/dev/null; then xprop -name LokoTube WM_CLASS || true; else echo "(xprop not installed)"; fi
             echo "--- media player on the bus"
-            gdbus call --session --dest org.mpris.MediaPlayer2.sonara --object-path /org/mpris/MediaPlayer2 \
+            gdbus call --session --dest org.mpris.MediaPlayer2.lokotube --object-path /org/mpris/MediaPlayer2 \
               --method org.freedesktop.DBus.Properties.GetAll org.mpris.MediaPlayer2 || true
-            gdbus call --session --dest org.mpris.MediaPlayer2.sonara --object-path /org/mpris/MediaPlayer2 \
+            gdbus call --session --dest org.mpris.MediaPlayer2.lokotube --object-path /org/mpris/MediaPlayer2 \
               --method org.freedesktop.DBus.Properties.Get org.mpris.MediaPlayer2.Player PlaybackStatus || true
             echo "--- play/pause, from the desktop"
-            gdbus call --session --dest org.mpris.MediaPlayer2.sonara --object-path /org/mpris/MediaPlayer2 \
+            gdbus call --session --dest org.mpris.MediaPlayer2.lokotube --object-path /org/mpris/MediaPlayer2 \
               --method org.mpris.MediaPlayer2.Player.PlayPause || true
           '
           echo "--- app log"; tail -n 60 out/app.log || true
@@ -115,7 +115,7 @@ jobs:
       - name: Upload the packages
         uses: actions/upload-artifact@v4
         with:
-          name: Sonara-Linux
+          name: LokoTube-Linux
           path: |
             out/*.deb
             out/*.AppImage
@@ -132,14 +132,14 @@ jobs:
         run: |
           tag="${RELEASE:-$GITHUB_REF_NAME}"
           case "$tag" in v[0-9]*) ;; *) echo "Not a version tag: $tag"; exit 1 ;; esac
-          gh release view "$tag" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1 || gh release create "$tag" -R "$GITHUB_REPOSITORY" --title "Sonara ${tag#v}" --notes "" || true
+          gh release view "$tag" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1 || gh release create "$tag" -R "$GITHUB_REPOSITORY" --title "LokoTube ${tag#v}" --notes "" || true
           gh release upload "$tag" out/*.deb out/*.AppImage -R "$GITHUB_REPOSITORY" --clobber
 
       - name: Upload the check
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Sonara-Linux-check
+          name: LokoTube-Linux-check
           path: |
             out/linux-window.png
             out/app.log

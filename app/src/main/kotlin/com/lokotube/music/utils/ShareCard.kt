@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -244,7 +244,7 @@ object ShareCard {
     private fun save(context: Context, bitmap: Bitmap): android.net.Uri {
         val dir = File(context.cacheDir, "share").apply { mkdirs() }
         dir.listFiles().orEmpty().forEach(File::delete)
-        val file = File(dir, "sonara-${System.currentTimeMillis()}.png")
+        val file = File(dir, "lokotube-${System.currentTimeMillis()}.png")
         FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
         return FileProvider.getUriForFile(context, "${context.packageName}.FileProvider", file)
     }

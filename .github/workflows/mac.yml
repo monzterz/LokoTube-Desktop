@@ -1,13 +1,13 @@
 name: macOS app
 
-# Builds Sonara's .dmg on a Mac, once on Apple Silicon and once on Intel: jpackage only packages
+# Builds LokoTube's .dmg on a Mac, once on Apple Silicon and once on Intel: jpackage only packages
 # for the system it runs on. The AI translator's key is built in (secrets/translator.sealed), so
 # nothing needs setting up.
 on:
   workflow_dispatch:
     inputs:
       release:
-        description: "Attach the files to this release (a version tag, e.g. v2.4.2); empty: don't"
+        description: "Attach the files to this release (a version tag, e.g. v0.1.0); empty: don't"
         required: false
         default: ""
   push:
@@ -53,13 +53,13 @@ jobs:
       - name: Name it for its Mac
         run: |
           cd desktop/build/compose/binaries/main/dmg
-          for f in Sonara-*.dmg; do mv "$f" "${f%.dmg}-mac-${{ matrix.arch }}.dmg"; done
+          for f in LokoTube-*.dmg; do mv "$f" "${f%.dmg}-mac-${{ matrix.arch }}.dmg"; done
           ls -la
 
       - name: Upload the .dmg
         uses: actions/upload-artifact@v4
         with:
-          name: Sonara-macOS-${{ matrix.arch }}
+          name: LokoTube-macOS-${{ matrix.arch }}
           path: desktop/build/compose/binaries/main/dmg/*.dmg
           if-no-files-found: error
 
@@ -73,5 +73,5 @@ jobs:
         run: |
           tag="${RELEASE:-$GITHUB_REF_NAME}"
           case "$tag" in v[0-9]*) ;; *) echo "Not a version tag: $tag"; exit 1 ;; esac
-          gh release view "$tag" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1 || gh release create "$tag" -R "$GITHUB_REPOSITORY" --title "Sonara ${tag#v}" --notes "" || true
+          gh release view "$tag" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1 || gh release create "$tag" -R "$GITHUB_REPOSITORY" --title "LokoTube ${tag#v}" --notes "" || true
           gh release upload "$tag" desktop/build/compose/binaries/main/dmg/*.dmg -R "$GITHUB_REPOSITORY" --clobber

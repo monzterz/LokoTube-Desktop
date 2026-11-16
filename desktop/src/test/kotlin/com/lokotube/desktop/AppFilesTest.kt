@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -14,7 +14,7 @@ import org.junit.Test
 
 /** Windows' data leaves the program's folder, which uninstalling (and so updating) empties. */
 class AppFilesTest {
-    private fun local() = Files.createTempDirectory("sonara-local").toFile()
+    private fun local() = Files.createTempDirectory("lokotube-local").toFile()
 
     @Test
     fun theOldDataMovesOut() {

@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -70,7 +70,7 @@ object SingleInstance {
         val token = UUID.randomUUID().toString()
         val server = ServerSocket(0, 1, InetAddress.getLoopbackAddress())
         addressFile.writeText("${server.localPort} ${ProcessHandle.current().pid()} $token")
-        thread(isDaemon = true, name = "sonara-single-instance") {
+        thread(isDaemon = true, name = "lokotube-single-instance") {
             while (true) {
                 runCatching {
                     server.accept().use { socket ->

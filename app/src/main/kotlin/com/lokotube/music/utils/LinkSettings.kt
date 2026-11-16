@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -16,7 +16,7 @@ private const val YOUTUBE_MUSIC_PACKAGE = "com.google.android.apps.youtube.music
 private val SAMPLE_LINK: Uri = Uri.parse("https://music.youtube.com/watch?v=dQw4w9WgXcQ")
 
 /**
- * Whether a music.youtube.com link opens in SONARA right now: asks Android which app it would
+ * Whether a music.youtube.com link opens in LOKOTUBE right now: asks Android which app it would
  * open such a link with (a chooser counts as no), the same on every Android version.
  */
 fun opensYouTubeMusicLinks(context: Context): Boolean {
@@ -28,9 +28,9 @@ fun opensYouTubeMusicLinks(context: Context): Boolean {
 }
 
 /**
- * Android 12 and later: SONARA's "Open by default" page, where music.youtube.com is added.
+ * Android 12 and later: LOKOTUBE's "Open by default" page, where music.youtube.com is added.
  * Before: YouTube Music's app page, where its "Open supported links" is turned off (Android then
- * asks which app to use and offers SONARA). False when no settings page could be opened.
+ * asks which app to use and offers LOKOTUBE). False when no settings page could be opened.
  */
 fun openLinkSettings(context: Context): Boolean {
     val pages = buildList {

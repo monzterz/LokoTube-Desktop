@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -13,7 +13,7 @@ import java.text.Normalizer
 
 /**
  * Tidies YouTube's own search order a little before it is shown; nothing is added or dropped.
- * The web client SONARA searches with often puts the music video as the top result and lists
+ * The web client LOKOTUBE searches with often puts the music video as the top result and lists
  * songs by popularity, so the song someone typed exactly could sit third. Two rules:
  *
  * 1. A video as the top result gives way to the same song (same title, a shared artist) when it

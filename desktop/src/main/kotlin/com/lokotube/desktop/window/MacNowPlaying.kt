@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -51,7 +51,7 @@ internal object MacNowPlaying {
     private val handlers = mutableListOf<Handler>()
 
     // Now Playing is updated off the UI, one change after another.
-    private val updates = Executors.newSingleThreadExecutor { Thread(it, "sonara-now-playing").apply { isDaemon = true } }
+    private val updates = Executors.newSingleThreadExecutor { Thread(it, "lokotube-now-playing").apply { isDaemon = true } }
 
     @Volatile private var ready = false
 
@@ -67,24 +67,24 @@ internal object MacNowPlaying {
             runCatching {
                 mediaPlayer
                 val target = makeTarget(
-                    "sonaraToggle:" to Handler { _, _, _ -> handled(onPlayPause) },
-                    "sonaraPlay:" to Handler { _, _, _ -> handled(onPlay) },
-                    "sonaraPause:" to Handler { _, _, _ -> handled(onPause) },
-                    "sonaraNext:" to Handler { _, _, _ -> handled(onNext) },
-                    "sonaraPrevious:" to Handler { _, _, _ -> handled(onPrevious) },
-                    "sonaraSeek:" to Handler { _, _, event ->
+                    "lokotubeToggle:" to Handler { _, _, _ -> handled(onPlayPause) },
+                    "lokotubePlay:" to Handler { _, _, _ -> handled(onPlay) },
+                    "lokotubePause:" to Handler { _, _, _ -> handled(onPause) },
+                    "lokotubeNext:" to Handler { _, _, _ -> handled(onNext) },
+                    "lokotubePrevious:" to Handler { _, _, _ -> handled(onPrevious) },
+                    "lokotubeSeek:" to Handler { _, _, event ->
                         val seconds = event?.let { send.invokeDouble(arrayOf(it, selector("positionTime"))) }
                         if (seconds == null) COMMAND_FAILED else handled { onSeek((seconds * MS_PER_SECOND).toLong()) }
                     },
                 )
                 val center = message(cls("MPRemoteCommandCenter"), "sharedCommandCenter")
                 listOf(
-                    "togglePlayPauseCommand" to "sonaraToggle:",
-                    "playCommand" to "sonaraPlay:",
-                    "pauseCommand" to "sonaraPause:",
-                    "nextTrackCommand" to "sonaraNext:",
-                    "previousTrackCommand" to "sonaraPrevious:",
-                    "changePlaybackPositionCommand" to "sonaraSeek:",
+                    "togglePlayPauseCommand" to "lokotubeToggle:",
+                    "playCommand" to "lokotubePlay:",
+                    "pauseCommand" to "lokotubePause:",
+                    "nextTrackCommand" to "lokotubeNext:",
+                    "previousTrackCommand" to "lokotubePrevious:",
+                    "changePlaybackPositionCommand" to "lokotubeSeek:",
                 ).forEach { (command, action) ->
                     val remote = message(center, command)
                     send.invoke(Pointer::class.java, arrayOf(remote, selector("addTarget:action:"), target, selector(action)))

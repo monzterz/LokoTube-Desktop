@@ -201,8 +201,8 @@ fun ExperimentalLyrics(
     var sharePreview by remember { mutableStateOf<Pair<android.graphics.Bitmap, android.net.Uri>?>(null) }
 
     /**
-     * Share goes straight to an image, no options: SONARA's card (sonar rings from the cover in
-     * the cover's colour, the chosen lines fading like an echo, SONARA's mark and a pulse).
+     * Share goes straight to an image, no options: LOKOTUBE's card (sonar rings from the cover in
+     * the cover's colour, the chosen lines fading like an echo, LOKOTUBE's mark and a pulse).
      * The image shows first, with a Share button, so it can be checked before it is sent.
      */
     fun shareLyricsImage(

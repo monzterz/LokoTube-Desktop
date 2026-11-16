@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -439,7 +439,7 @@ class Player(private val scope: CoroutineScope) {
         }
     }
 
-    private inner class Session(private val song: LocalSong, private val startMs: Long, private val fadeInMs: Long) : Thread("sonara-audio") {
+    private inner class Session(private val song: LocalSong, private val startMs: Long, private val fadeInMs: Long) : Thread("lokotube-audio") {
         @Volatile var cancelled = false
 
         @Volatile var seekTo = NO_SEEK

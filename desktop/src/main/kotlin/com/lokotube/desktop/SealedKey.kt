@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -17,7 +17,7 @@ import javax.crypto.spec.SecretKeySpec
  * The Android app uses the same scheme (lyrics/SealedKey.kt); the two must stay alike.
  */
 internal object SealedKey {
-    private const val PEPPER = "Sonara/lyrics/translator/2026"
+    private const val PEPPER = "LokoTube/lyrics/translator/2026"
     private const val SALT_BYTES = 16
     private const val IV_BYTES = 12
     private const val TAG_BITS = 128

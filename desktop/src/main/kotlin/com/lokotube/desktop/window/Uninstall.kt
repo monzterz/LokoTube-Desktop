@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -153,7 +153,7 @@ object Uninstall {
                 when {
                     appImage != null -> if (appImage.delete()) Result.Removed else Result.RemoveYourself("Delete ${appImage.path}.")
                     removeDebPackage() -> Result.Removed
-                    else -> Result.RemoveYourself("Run: sudo apt remove sonara")
+                    else -> Result.RemoveYourself("Run: sudo apt remove lokotube")
                 }
             }
             else -> Result.RemoveYourself("Open Settings → Apps, find LokoTube and choose Uninstall.")
@@ -164,6 +164,6 @@ object Uninstall {
     private fun removeDebPackage(): Boolean {
         val pkexec = listOf("/usr/bin/pkexec", "/bin/pkexec").firstOrNull { File(it).canExecute() } ?: return false
         val aptGet = listOf("/usr/bin/apt-get", "/bin/apt-get").firstOrNull { File(it).canExecute() } ?: return false
-        return runCatching { ProcessBuilder(pkexec, aptGet, "remove", "-y", "sonara").inheritIO().start().waitFor() == 0 }.getOrDefault(false)
+        return runCatching { ProcessBuilder(pkexec, aptGet, "remove", "-y", "lokotube").inheritIO().start().waitFor() == 0 }.getOrDefault(false)
     }
 }

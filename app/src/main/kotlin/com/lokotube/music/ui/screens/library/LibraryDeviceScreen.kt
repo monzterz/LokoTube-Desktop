@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -78,7 +78,7 @@ data class DeviceTrack(
 
 /**
  * Library > On device: the music files on the phone (MediaStore, music only, not ringtones or
- * voice notes). They stay apart from the YouTube library: a tap opens SONARA's local player,
+ * voice notes). They stay apart from the YouTube library: a tap opens LOKOTUBE's local player,
  * which also steps through the other files in the same folder. Nothing is added to the account.
  */
 @Composable

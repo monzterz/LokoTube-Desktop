@@ -62,9 +62,9 @@ object ComposeToImage {
         secondaryTextColor: Int? = null,
         lyricsAlignment: Layout.Alignment = Layout.Alignment.ALIGN_CENTER,
         /**
-         * SONARA's own card, after its mark (a pulse and its echo): the deep blue-black of the
+         * LOKOTUBE's own card, after its mark (a pulse and its echo): the deep blue-black of the
          * app lit by the cover's colour, sonar rings spreading from the cover, the lines fading
-         * one after another like an echo, and a pulse beside the SONARA name. Ignores the
+         * one after another like an echo, and a pulse beside the LOKOTUBE name. Ignores the
          * colour and style arguments.
          */
         sonar: Boolean = false,
@@ -378,7 +378,7 @@ object ComposeToImage {
 
             // Adaptive font size calculation
             // Start with a large size (e.g. 50sp equivalent) and scale down until it fits
-            // The SONARA card starts smaller, so a short quote reads as a line of lyrics (about five
+            // The LOKOTUBE card starts smaller, so a short quote reads as a line of lyrics (about five
             // words a line) instead of two or three huge words per line.
             var lyricsTextSize = (if (sonar) SONAR_MAX_LYRICS_SIZE else 50f) * scale
             val minLyricsSize = 13f * scale
@@ -401,7 +401,7 @@ object ComposeToImage {
                 lyricsTextSize -= 1f * scale // Decrease by ~1sp equivalent steps
             }
 
-            // One final rebuild with the determined size. The SONARA card fades each line a
+            // One final rebuild with the determined size. The LOKOTUBE card fades each line a
             // little more than the one before, like an echo.
             lyricsPaint.textSize = lyricsTextSize
             val lyricsText: CharSequence = if (sonar) echoLines(lyrics, mainTextColor) else lyrics
@@ -457,7 +457,7 @@ object ComposeToImage {
     private const val SONAR_RINGS = 9
     private const val SONAR_BARS = 18
 
-    /** Largest lyrics size on the SONARA card, in the card's dp (it shrinks further to fit). */
+    /** Largest lyrics size on the LOKOTUBE card, in the card's dp (it shrinks further to fit). */
     private const val SONAR_MAX_LYRICS_SIZE = 24f
 
     private fun withAlpha(

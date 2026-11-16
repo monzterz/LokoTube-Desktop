@@ -25,10 +25,10 @@ fun aiSetting(
  */
 fun sealKey(key: String): String {
     if (key.isEmpty()) return ""
-    val seed = MessageDigest.getInstance("SHA-256").digest("sonara-seal:$key".toByteArray(Charsets.UTF_8))
+    val seed = MessageDigest.getInstance("SHA-256").digest("lokotube-seal:$key".toByteArray(Charsets.UTF_8))
     val salt = seed.copyOfRange(0, 16)
     val iv = seed.copyOfRange(16, 28)
-    val secret = MessageDigest.getInstance("SHA-256").digest(salt + "Sonara/lyrics/translator/2026".toByteArray(Charsets.UTF_8))
+    val secret = MessageDigest.getInstance("SHA-256").digest(salt + "LokoTube/lyrics/translator/2026".toByteArray(Charsets.UTF_8))
     val cipher = Cipher.getInstance("AES/GCM/NoPadding")
     cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(secret, "AES"), GCMParameterSpec(128, iv))
     return Base64.getEncoder().encodeToString(salt + iv + cipher.doFinal(key.toByteArray(Charsets.UTF_8)))
@@ -39,14 +39,14 @@ fun sealKey(key: String): String {
 // `./gradlew :app:sealTranslatorKey --no-configuration-cache` to seal that one into the file.
 val sealedKeyFile = rootProject.file("secrets/translator.sealed")
 val sealedTranslatorKey: String =
-    aiSetting("SONARA_AI_KEY", "").let { key ->
+    aiSetting("LOKOTUBE_AI_KEY", "").let { key ->
         if (key.isNotEmpty()) sealKey(key) else sealedKeyFile.takeIf { it.isFile }?.readText()?.trim().orEmpty()
     }
 
 tasks.register("sealTranslatorKey") {
-    description = "Seals the SONARA_AI_KEY of local.properties into secrets/translator.sealed."
+    description = "Seals the LOKOTUBE_AI_KEY of local.properties into secrets/translator.sealed."
     doLast {
-        check(aiSetting("SONARA_AI_KEY", "").isNotEmpty()) { "Put SONARA_AI_KEY in local.properties first." }
+        check(aiSetting("LOKOTUBE_AI_KEY", "").isNotEmpty()) { "Put LOKOTUBE_AI_KEY in local.properties first." }
         sealedKeyFile.parentFile.mkdirs()
         sealedKeyFile.writeText(sealedTranslatorKey + "\n")
         println("Sealed into ${sealedKeyFile.path}")
@@ -86,8 +86,8 @@ android {
         applicationId = applicationIdOverride ?: baseApplicationId
         minSdk = 26
         targetSdk = 36
-        versionCode = 2025
-        versionName = "2.4.2"
+        versionCode = 1
+        versionName = "0.1.0"
         val baseVersionName = requireNotNull(versionName)
         buildConfigField("String", "BASE_VERSION_NAME", "\"$baseVersionName\"")
         buildCommit?.let { versionName = "$baseVersionName+$it" }
@@ -103,10 +103,10 @@ android {
         buildConfigField("String", "ARCHITECTURE", "\"universal\"")
         // OpenAI-compatible chat endpoint; the default is Gemini's.
         buildConfigField("String", "AI_TRANSLATE_KEY_SEALED", "\"$sealedTranslatorKey\"")
-        buildConfigField("String", "AI_TRANSLATE_BASE_URL", "\"${aiSetting("SONARA_AI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")}\"")
-        buildConfigField("String", "AI_TRANSLATE_MODEL", "\"${aiSetting("SONARA_AI_MODEL", "gemini-flash-lite-latest")}\"")
+        buildConfigField("String", "AI_TRANSLATE_BASE_URL", "\"${aiSetting("LOKOTUBE_AI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")}\"")
+        buildConfigField("String", "AI_TRANSLATE_MODEL", "\"${aiSetting("LOKOTUBE_AI_MODEL", "gemini-flash-lite-latest")}\"")
         // Tried in turn when the model above is busy or fails; comma separated.
-        buildConfigField("String", "AI_TRANSLATE_FALLBACK_MODELS", "\"${aiSetting("SONARA_AI_FALLBACK_MODELS", "gemini-3.5-flash-lite,gemini-3.8-flash,gemini-flash-latest")}\"")
+        buildConfigField("String", "AI_TRANSLATE_FALLBACK_MODELS", "\"${aiSetting("LOKOTUBE_AI_FALLBACK_MODELS", "gemini-3.5-flash-lite,gemini-3.8-flash,gemini-flash-latest")}\"")
     }
 
     // ER-Music ships a single FOSS flavor: no Cast, no in-app updater.

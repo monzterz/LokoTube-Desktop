@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -201,7 +201,7 @@ class MprisPlayer(private val bus: DBusConnection, private val actions: MprisAct
     }
 
     companion object {
-        const val BUS_NAME = "org.mpris.MediaPlayer2.sonara"
+        const val BUS_NAME = "org.mpris.MediaPlayer2.lokotube"
         const val PATH = "/org/mpris/MediaPlayer2"
         const val ROOT = "org.mpris.MediaPlayer2"
         const val PLAYER = "org.mpris.MediaPlayer2.Player"
@@ -220,7 +220,7 @@ class MprisPlayer(private val bus: DBusConnection, private val actions: MprisAct
         private val SONG_PROPERTIES = setOf("PlaybackStatus", "Metadata", "CanGoNext", "CanGoPrevious", "CanPlay", "CanPause", "CanSeek")
 
         /** An object path may hold letters, digits and _ only; YouTube's ids also use - . */
-        fun trackPath(id: String): String = "/app/sonara/track/" + id.map { if (it.isLetterOrDigit() && it.code < 128) it else '_' }.joinToString("")
+        fun trackPath(id: String): String = "/app/lokotube/track/" + id.map { if (it.isLetterOrDigit() && it.code < 128) it else '_' }.joinToString("")
     }
 }
 

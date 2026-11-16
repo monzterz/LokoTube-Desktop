@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -26,7 +26,7 @@ val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
  * (HyperOS prunes logcat too quickly to rely on it). Capped at 512 KB.
  */
 class LokoTubeFileTree(context: Context) : Timber.Tree() {
-    private val file = context.getExternalFilesDir(null)?.let { File(it, "sonara.log") }
+    private val file = context.getExternalFilesDir(null)?.let { File(it, "lokotube.log") }
 
     override fun isLoggable(tag: String?, priority: Int) = tag == "LokoTubeWeb"
 

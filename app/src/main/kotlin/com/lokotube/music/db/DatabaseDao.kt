@@ -1904,7 +1904,7 @@ interface DatabaseDao {
             playlistEntity.copy(
                 name = playlistItem.title,
                 browseId = playlistItem.id,
-                // A cover picked in SONARA is a local file; keep it over the remote collage.
+                // A cover picked in LOKOTUBE is a local file; keep it over the remote collage.
                 thumbnailUrl = playlistEntity.thumbnailUrl?.takeIf { it.startsWith("file:") } ?: playlistItem.thumbnail,
                 isEditable = playlistItem.isEditable || playlistEntity.isEditable,
                 remoteSongCount = playlistItem.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Launch screen: the SONARA pulse sends out its echoes on the night background. -->
+    <!-- Launch screen: the LOKOTUBE pulse sends out its echoes on the night background. -->
     <style name="Theme.Metrolist" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>

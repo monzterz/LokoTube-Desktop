@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -88,7 +88,7 @@ object WindowsSession {
     private fun end(onEnd: () -> Unit) {
         if (ending) return
         ending = true
-        thread(name = "sonara-end-session") {
+        thread(name = "lokotube-end-session") {
             runCatching(onEnd)
             exitProcess(0)
         }

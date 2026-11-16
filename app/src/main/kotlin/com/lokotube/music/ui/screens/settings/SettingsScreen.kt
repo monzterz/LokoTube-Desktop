@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -314,7 +314,7 @@ fun SettingsScreen(navController: NavController) {
         )
 
         // Android gives music.youtube.com links to YouTube Music (it owns the domain); only the
-        // phone's settings can hand them to SONARA. The switch shows where links open now and
+        // phone's settings can hand them to LOKOTUBE. The switch shows where links open now and
         // goes straight to that settings page; it is read again on return.
         var linksHere by remember { mutableStateOf(opensYouTubeMusicLinks(context)) }
         LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { linksHere = opensYouTubeMusicLinks(context) }

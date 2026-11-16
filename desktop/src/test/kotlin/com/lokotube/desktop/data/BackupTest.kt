@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -18,7 +18,7 @@ import org.junit.Test
 
 /** Back up, restore and delete, on folders of their own (never the real data). */
 class BackupTest {
-    private fun folder() = Files.createTempDirectory("sonara-test").toFile()
+    private fun folder() = Files.createTempDirectory("lokotube-test").toFile()
 
     private fun File.put(path: String, text: String) = File(this, path).apply { parentFile.mkdirs(); writeText(text) }
 

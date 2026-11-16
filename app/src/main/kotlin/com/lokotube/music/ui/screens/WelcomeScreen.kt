@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -53,7 +53,7 @@ import com.lokotube.music.ui.theme.Spacing
 private const val PULSE_MS = 2400
 
 /**
- * First screen until the user signs in: SONARA needs the YouTube Music account for the library,
+ * First screen until the user signs in: LOKOTUBE needs the YouTube Music account for the library,
  * likes and playlists, so the only action is "Sign in with Google": one Google sign-in page, in a
  * sheet from the bottom, which also gives the app the YouTube Music session.
  */

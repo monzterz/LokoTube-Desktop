@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -7,7 +7,7 @@ package timber.log
 
 /** The shared YouTube client logs through Timber, an Android library; here it goes to stderr. */
 object Timber {
-    private val enabled = System.getenv("SONARA_LOG") != null
+    private val enabled = System.getenv("LOKOTUBE_LOG") != null
 
     private fun log(level: String, message: String?, error: Throwable? = null) {
         if (!enabled) return

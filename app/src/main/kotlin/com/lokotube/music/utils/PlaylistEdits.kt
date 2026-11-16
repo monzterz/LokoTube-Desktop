@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -22,12 +22,12 @@ import java.io.File
 import java.time.LocalDateTime
 
 /**
- * Saves title, description, visibility and an optional cover change on YouTube first; SONARA
+ * Saves title, description, visibility and an optional cover change on YouTube first; LOKOTUBE
  * only shows what YouTube accepted, and the toast says so. Nothing is changed locally ahead of
  * the account: a refused cover stays the old one. Returns true when everything was accepted
  * (the editor then closes); on false it stays open with the user's input.
  *
- * A playlist that exists only in SONARA (no browseId) is saved locally.
+ * A playlist that exists only in LOKOTUBE (no browseId) is saved locally.
  */
 suspend fun savePlaylistEdits(
     context: Context,
@@ -104,9 +104,9 @@ suspend fun savePlaylistEdits(
 private enum class SaveResult { SAVED, COVER_FAILED, FAILED }
 
 /**
- * Deletes a playlist on YouTube first, then in SONARA, like every other account change: a
+ * Deletes a playlist on YouTube first, then in LOKOTUBE, like every other account change: a
  * playlist YouTube refused to delete stays (it would only come back with the next sync), and
- * the toast says which. One that exists only in SONARA is deleted here at once.
+ * the toast says which. One that exists only in LOKOTUBE is deleted here at once.
  */
 fun deletePlaylistEverywhere(
     context: Context,
@@ -128,7 +128,7 @@ fun deletePlaylistEverywhere(
     }
 }
 
-/** A playlist edit YouTube accepted ([playlistId] is SONARA's own id). */
+/** A playlist edit YouTube accepted ([playlistId] is LOKOTUBE's own id). */
 data class SavedPlaylistEdit(
     val playlistId: String,
     val description: String,

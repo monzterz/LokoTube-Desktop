@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -25,7 +25,7 @@ import javax.crypto.spec.SecretKeySpec
 object LinuxKeyring {
     private const val TOOL = "secret-tool"
     private const val LABEL = "LokoTube session key"
-    private val attributes = listOf("application", "sonara", "purpose", "session")
+    private val attributes = listOf("application", "lokotube", "purpose", "session")
     private const val KEY_BYTES = 32
     private const val IV_BYTES = 12
     private const val TAG_BITS = 128

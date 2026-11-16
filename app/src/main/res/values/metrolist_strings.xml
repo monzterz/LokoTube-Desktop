@@ -443,7 +443,7 @@
 
     <!-- Theme Palette Names -->
     <string name="palette_dynamic">Dynamic</string>
-    <string name="palette_utaloom_coral">Utaloom Coral</string>
+    <string name="palette_utaloom_coral">LokoTube Coral</string>
     <string name="palette_crimson">Crimson</string>
     <string name="palette_rose">Rose</string>
     <string name="palette_purple">Purple</string>
@@ -626,13 +626,13 @@
     <string name="stream_source_web_creator_desc">Creator web client.</string>
     <string name="top_result">Top result</string>
     <string name="other">Other</string>
-    <string name="utaloom_name" translatable="false">Utaloom Android</string>
+    <string name="utaloom_name" translatable="false">LokoTube Android</string>
     <string name="utaloom_tap_to_open" translatable="false">Tap to open LokoTube</string>
     <string name="utaloom_crash_report_subject" translatable="false">LokoTube crash report</string>
-    <string name="utaloom_maintainer" translatable="false">Utaloom maintainer</string>
+    <string name="utaloom_maintainer" translatable="false">LokoTube maintainer</string>
     <string name="utaloom_attribution" translatable="false">Based on open-source work from Metrolist. Source attribution does not imply affiliation or endorsement.</string>
     <string name="utaloom_independent_notice" translatable="false">Independently maintained by Rashid. Not affiliated with Metro Group, Metrolist, or MetrolistGroup.</string>
-    <string name="utaloom_desktop_app" translatable="false">Utaloom for desktop</string>
+    <string name="utaloom_desktop_app" translatable="false">LokoTube for desktop</string>
     <string name="utaloom_report_issue" translatable="false">Report an Android issue</string>
     <string name="offline_mode">Offline mode</string>
     <string name="offline_mode_desc">Browse and play downloaded music and episodes only. Streaming, downloads and YouTube sync are paused.</string>

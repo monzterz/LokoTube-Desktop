@@ -32,10 +32,10 @@ kotlin {
  */
 fun sealKey(key: String): String {
     if (key.isEmpty()) return ""
-    val seed = MessageDigest.getInstance("SHA-256").digest("sonara-seal:$key".toByteArray(Charsets.UTF_8))
+    val seed = MessageDigest.getInstance("SHA-256").digest("lokotube-seal:$key".toByteArray(Charsets.UTF_8))
     val salt = seed.copyOfRange(0, 16)
     val iv = seed.copyOfRange(16, 28)
-    val secret = MessageDigest.getInstance("SHA-256").digest(salt + "Sonara/lyrics/translator/2026".toByteArray(Charsets.UTF_8))
+    val secret = MessageDigest.getInstance("SHA-256").digest(salt + "LokoTube/lyrics/translator/2026".toByteArray(Charsets.UTF_8))
     val cipher = Cipher.getInstance("AES/GCM/NoPadding")
     cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(secret, "AES"), GCMParameterSpec(128, iv))
     return Base64.getEncoder().encodeToString(salt + iv + cipher.doFinal(key.toByteArray(Charsets.UTF_8)))
@@ -60,11 +60,11 @@ val generateSecrets by tasks.registering {
             package com.lokotube.desktop
 
             internal object BuildSecrets {
-                private const val AI_KEY_SEALED = "${setting("SONARA_AI_KEY", "").let { if (it.isNotEmpty()) sealKey(it) else sealedFile.takeIf { f -> f.isFile }?.readText()?.trim().orEmpty() }}"
+                private const val AI_KEY_SEALED = "${setting("LOKOTUBE_AI_KEY", "").let { if (it.isNotEmpty()) sealKey(it) else sealedFile.takeIf { f -> f.isFile }?.readText()?.trim().orEmpty() }}"
                 val AI_KEY: String by lazy { SealedKey.open(AI_KEY_SEALED) }
-                const val AI_BASE_URL = "${setting("SONARA_AI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")}"
-                const val AI_MODEL = "${setting("SONARA_AI_MODEL", "gemini-flash-lite-latest")}"
-                const val AI_FALLBACK_MODELS = "${setting("SONARA_AI_FALLBACK_MODELS", "gemini-3.5-flash-lite,gemini-3.8-flash,gemini-flash-latest")}"
+                const val AI_BASE_URL = "${setting("LOKOTUBE_AI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")}"
+                const val AI_MODEL = "${setting("LOKOTUBE_AI_MODEL", "gemini-flash-lite-latest")}"
+                const val AI_FALLBACK_MODELS = "${setting("LOKOTUBE_AI_FALLBACK_MODELS", "gemini-3.5-flash-lite,gemini-3.8-flash,gemini-flash-latest")}"
             }
             """.trimIndent(),
         )
@@ -86,7 +86,7 @@ val fromAndroid by tasks.registering(Sync::class) {
 }
 kotlin.sourceSets["main"].kotlin.srcDir(fromAndroid)
 
-val appVersion = "2.4.2"
+val appVersion = "0.1.0"
 val ktor = "3.6.0"
 val ffmpegPresets = "1.5.14"
 
@@ -95,7 +95,7 @@ val buildsOnMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = t
 val buildsOnLinux = System.getProperty("os.name").startsWith("Linux", ignoreCase = true)
 val buildsOnArm = System.getProperty("os.arch") == "aarch64"
 val nativePlatform =
-    providers.gradleProperty("sonara.natives").orNull
+    providers.gradleProperty("lokotube.natives").orNull
         ?: when {
             buildsOnMac && buildsOnArm -> "macosx-arm64"
             buildsOnMac -> "macosx-x86_64"
@@ -219,7 +219,7 @@ if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
     }
 }
 
-// The app's jars with another system's natives (-Psonara.natives=macosx-arm64), for putting a Mac
+// The app's jars with another system's natives (-Plokotube.natives=macosx-arm64), for putting a Mac
 // app together away from a Mac (mac/make_app.py). On a Mac itself, packageDmg is the way.
 tasks.register<Sync>("stageAppJars") {
     from(tasks.named("jar"))
@@ -238,7 +238,7 @@ tasks.register<Exec>("packageInstaller") {
         output.mkdirs()
         output.listFiles().orEmpty().forEach { it.delete() }
         environment("PATH", wix.path + ";" + System.getenv("PATH"))
-        environment("SONARA_WIX", wixResources.path)
+        environment("LOKOTUBE_WIX", wixResources.path)
     }
     commandLine(
         tool.path,

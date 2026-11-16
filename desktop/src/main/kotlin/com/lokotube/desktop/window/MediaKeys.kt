@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -46,7 +46,7 @@ object MediaKeys {
             return
         }
         if (!Os.isWindows) return
-        thread(isDaemon = true, name = "sonara-media-keys") {
+        thread(isDaemon = true, name = "lokotube-media-keys") {
             val actions = mapOf(1 to onPlayPause, 2 to onNext, 3 to onPrevious)
             val keys = mapOf(1 to VK_MEDIA_PLAY_PAUSE, 2 to VK_MEDIA_NEXT, 3 to VK_MEDIA_PREVIOUS)
             keys.forEach { (id, key) -> User32.INSTANCE.RegisterHotKey(null, id, 0, key) }

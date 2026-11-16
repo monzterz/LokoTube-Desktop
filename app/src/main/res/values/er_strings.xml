@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- SONARA strings. English is the default; Indonesian lives in values-in/. -->
+<!-- LOKOTUBE strings. English is the default; Indonesian lives in values-in/. -->
 <resources>
     <!-- States -->
     <string name="er_error_title">Something went wrong</string>

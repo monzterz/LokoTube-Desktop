@@ -960,7 +960,7 @@ fun PlaylistListItem(
 /**
  * What a playlist is and how big, as YouTube Music writes it under every Library item:
  * "Auto playlist • 12 songs", "Playlist • Rashid • 37 songs" (the owner only for the
- * account's own playlists; SONARA does not keep the owner of followed ones).
+ * account's own playlists; LOKOTUBE does not keep the owner of followed ones).
  */
 @Composable
 private fun playlistSubtitle(

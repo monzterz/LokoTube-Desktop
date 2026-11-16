@@ -1,5 +1,5 @@
 /**
- * SONARA (C) 2026, derived from Metrolist
+ * LOKOTUBE (C) 2026, derived from Metrolist
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -57,7 +57,7 @@ object EdgeSignIn {
     private val profile = File(AppFiles.root, "signin-browser")
 
     // A browser from the Snap Store may only write under its own folder: the profile goes there.
-    private fun snapProfile(name: String) = File(System.getProperty("user.home"), "snap/$name/common/sonara-signin")
+    private fun snapProfile(name: String) = File(System.getProperty("user.home"), "snap/$name/common/lokotube-signin")
     private val http = OkHttpClient()
     private val json = Json { ignoreUnknownKeys = true }
 

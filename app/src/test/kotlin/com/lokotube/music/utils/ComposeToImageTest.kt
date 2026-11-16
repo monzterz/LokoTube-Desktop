@@ -62,7 +62,7 @@ class ComposeToImageTest {
                     assertEquals(0, Color.alpha(image.getPixel(x, y)))
                 }
                 assertEquals(255, Color.alpha(image.getPixel(image.width / 2, image.height / 2)))
-                System.getenv("SONARA_LYRICS_PREVIEW_DIR")?.let { directory ->
+                System.getenv("LOKOTUBE_LYRICS_PREVIEW_DIR")?.let { directory ->
                     val file = File(directory, "lyrics-sonar-$index.png")
                     file.parentFile?.mkdirs()
                     file.outputStream().use { assertTrue(image.compress(Bitmap.CompressFormat.PNG, 100, it)) }
