@@ -261,16 +261,7 @@ fun PlayerBar(app: AppState, state: PlayerState, hazeState: HazeState, modifier:
     val track = state.current
     val dark = LocalIsDark.current
     var menuAt by remember { mutableStateOf<IntOffset?>(null) }
-    val glassStyle =
-        remember(dark) {
-            HazeBlurStyle {
-                blurEnabled(true)
-                blurRadius(24.dp)
-                backgroundColor(if (dark) Color.Black.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.45f))
-                colorEffects(listOf(HazeColorEffect.tint(Color.White.copy(alpha = if (dark) 0.06f else 0.3f))))
-                noiseFactor(0.04f)
-            }
-        }
+    val glassStyle = frostedStyle(dark)
     val edge = if (dark) Color.White.copy(alpha = 0.14f) else Color.White.copy(alpha = 0.8f)
     Row(
         verticalAlignment = Alignment.CenterVertically,

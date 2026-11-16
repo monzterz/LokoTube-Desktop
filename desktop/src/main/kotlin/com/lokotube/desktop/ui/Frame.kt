@@ -48,7 +48,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.blur.hazeBlur
 import androidx.compose.ui.geometry.Size as GeometrySize
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -155,13 +159,21 @@ fun BareTitleBar() {
 
 /** The top of the window: history arrows, search, the account, and the window buttons. */
 @Composable
-fun TitleBar(app: AppState, search: TextFieldValue, onSearchChange: (TextFieldValue) -> Unit, onSearchFocus: (Boolean) -> Unit, onSearchDone: () -> Unit, focus: FocusRequester) {
+fun TitleBar(app: AppState, search: TextFieldValue, onSearchChange: (TextFieldValue) -> Unit, onSearchFocus: (Boolean) -> Unit, onSearchDone: () -> Unit, focus: FocusRequester, hazeState: HazeState, modifier: Modifier = Modifier) {
     val density = LocalDensity.current
     LaunchedEffect(density) { WindowChrome.setCaptionHeight(with(density) { Size.TitleBar.roundToPx() }) }
     val active by WindowChrome.active.collectAsState()
+    val dark = LocalIsDark.current
     val control = with(WindowChrome) { Modifier.captionControl() }
     val controlTwo = with(WindowChrome) { Modifier.captionControl() }
-    Box(with(WindowChrome) { Modifier.windowDragArea() }.fillMaxWidth().height(Size.TitleBar)) {
+    val edge = if (dark) Color.White.copy(alpha = 0.14f) else Color.White.copy(alpha = 0.8f)
+    Box(
+        with(WindowChrome) { modifier.windowDragArea() }
+            .fillMaxWidth()
+            .height(Size.TitleBar)
+            .hazeBlur(input = HazeInput.Backdrop(hazeState), style = frostedStyle(dark))
+            .drawBehind { drawLine(edge, Offset(0f, size.height), Offset(size.width, size.height), strokeWidth = 1.dp.toPx()) },
+    ) {
         val start = if (Os.isMac) Size.MacWindowButtons else Spacing.M
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterStart).padding(start = start)) {
             Image(painterResource("icons/logo_mark.png"), "LokoTube", modifier = Modifier.size(Size.TitleLogo))
@@ -404,7 +416,7 @@ fun Sidebar(app: AppState) {
     var query by remember { mutableStateOf("") }
     var sortOpen by remember { mutableStateOf(false) }
     var createOpen by remember { mutableStateOf(false) }
-    Column(Modifier.width(Size.Sidebar).fillMaxHeight().panel().padding(Spacing.S)) {
+    Column(Modifier.width(Size.Sidebar).fillMaxHeight().panel().padding(top = Size.TitleBar + Spacing.S, start = Spacing.S, end = Spacing.S, bottom = Spacing.S)) {
         NavRow(if (route == Route.Home) "nav_home_on" else "nav_home_off", "Home", route == Route.Home) { app.go(Route.Home) }
         NavRow("explore_outlined", "Browse", route == Route.Browse) { app.go(Route.Browse) }
         NavRow(if (route == Route.Library) "nav_library_on" else "nav_library_off", "Library", route == Route.Library) { app.go(Route.Library) }

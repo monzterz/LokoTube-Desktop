@@ -24,7 +24,10 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import dev.chrisbanes.haze.blur.HazeBlurStyle
+import dev.chrisbanes.haze.blur.HazeColorEffect
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -186,6 +189,19 @@ fun LokotubeTheme(forceDark: Boolean = false, content: @Composable () -> Unit) {
         )
     }
 }
+
+/** Frosted-glass blur style shared by the title bar and the bottom player bar. */
+@Composable
+fun frostedStyle(dark: Boolean): HazeBlurStyle =
+    remember(dark) {
+        HazeBlurStyle {
+            blurEnabled(true)
+            blurRadius(24.dp)
+            backgroundColor(if (dark) Color.Black.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.45f))
+            colorEffects(listOf(HazeColorEffect.tint(Color.White.copy(alpha = if (dark) 0.06f else 0.3f))))
+            noiseFactor(0.04f)
+        }
+    }
 
 /** A panel of the window, with a faint glow of the accent falling from its top. */
 @Composable

@@ -544,23 +544,19 @@ private fun App(app: AppState) {
             },
     ) {
         val hazeState = rememberHazeState()
-        Column(Modifier.fillMaxSize()) {
-            TitleBar(app, search, { search = it }, { if (it) searchOpen = true }, { searchOpen = false }, focus)
-            Box(Modifier.weight(1f).fillMaxWidth()) {
-                Row(Modifier.fillMaxSize().padding(horizontal = Spacing.S).hazeSource(hazeState), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Sidebar(app)
-                    CenterPane(app, state, Modifier.weight(1f).fillMaxHeight())
-                    if (state.current != null) {
-                        when (app.sidePanel) {
-                            SidePanel.NowPlaying -> NowPlayingPanel(app, state)
-                            SidePanel.Queue -> QueuePanel(app, state)
-                            null -> CollapsedPanel(app)
-                        }
-                    }
+        Row(Modifier.fillMaxSize().padding(horizontal = Spacing.S).hazeSource(hazeState), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Sidebar(app)
+            CenterPane(app, state, Modifier.weight(1f).fillMaxHeight())
+            if (state.current != null) {
+                when (app.sidePanel) {
+                    SidePanel.NowPlaying -> NowPlayingPanel(app, state)
+                    SidePanel.Queue -> QueuePanel(app, state)
+                    null -> CollapsedPanel(app)
                 }
-                PlayerBar(app, state, hazeState, Modifier.align(Alignment.BottomCenter))
             }
         }
+        TitleBar(app, search, { search = it }, { if (it) searchOpen = true }, { searchOpen = false }, focus, hazeState, Modifier.align(Alignment.TopCenter))
+        PlayerBar(app, state, hazeState, Modifier.align(Alignment.BottomCenter))
         if (searchOpen) {
             SearchPanel(app, search.text, onClose = {
                 searchOpen = false
@@ -598,7 +594,7 @@ private fun App(app: AppState) {
 private fun CenterPane(app: AppState, state: PlayerState, modifier: Modifier) {
     val online by Connection.online.collectAsState()
     Box(modifier.clip(ErShape.Medium).appBackdrop()) {
-        Column(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().padding(top = Size.TitleBar)) {
             AnimatedVisibility(!online) { OfflineStrip(app) }
             AnimatedContent(
                 targetState = app.route,
