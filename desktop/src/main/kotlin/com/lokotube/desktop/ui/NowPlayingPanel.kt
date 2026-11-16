@@ -70,7 +70,7 @@ fun NowPlayingPanel(app: AppState, state: PlayerState) {
         value = YouTube.getMediaInfo(track.id).getOrNull()
     }
 
-    Column(Modifier.width(Size.Queue).fillMaxHeight().panel()) {
+    Column(Modifier.width(Size.Queue).fillMaxHeight().panel().padding(top = Size.TitleBar)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(start = Spacing.XS, end = Spacing.XS, top = Spacing.XS)) {
             SymbolButton("side_panel", "Hide panel", tint = colors.onSurfaceVariant, iconSize = Size.IconSmall) {
                 app.sidePanel = null

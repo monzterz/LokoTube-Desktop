@@ -329,7 +329,7 @@ fun QueuePanel(app: AppState, state: PlayerState) {
     val player = app.player
     val colors = MaterialTheme.colorScheme
     val list = rememberLazyListState(initialFirstVisibleItemIndex = state.index.coerceAtLeast(0))
-    Column(Modifier.width(Size.Queue).fillMaxHeight().panel().padding(Spacing.S)) {
+    Column(Modifier.width(Size.Queue).fillMaxHeight().panel().padding(top = Size.TitleBar + Spacing.S, start = Spacing.S, end = Spacing.S, bottom = Spacing.S)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = Spacing.S)) {
             Text("Queue", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             SymbolButton("delete", "Clear queue", tint = colors.onSurfaceVariant, iconSize = Size.IconSmall, onClick = player::clearQueue)
