@@ -50,6 +50,16 @@ jobs:
           uname -m
           ./gradlew --console=plain -p desktop packageDmg
 
+      - name: jpackage log (on failure)
+        if: failure()
+        run: |
+          echo "=== jpackage stderr ==="
+          cat desktop/build/compose/logs/createDistributable/*err.txt 2>/dev/null || true
+          echo "=== jpackage stdout ==="
+          cat desktop/build/compose/logs/createDistributable/*out.txt 2>/dev/null || true
+          echo "=== jpackage args ==="
+          cat desktop/build/compose/tmp/createDistributable.args.txt 2>/dev/null || true
+
       - name: Name it for its Mac
         run: |
           cd desktop/build/compose/binaries/main/dmg
