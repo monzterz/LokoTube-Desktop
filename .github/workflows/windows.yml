@@ -1,0 +1,73 @@
+name: Windows app
+
+# Builds LokoTube's .msi and .exe on Windows: jpackage only packages for the system it runs on.
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Attach the files to this release (a version tag, e.g. v0.1.0); empty: don't"
+        required: false
+        default: ""
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Build .msi and .exe
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # packageInstaller builds the .msi (WiX, downloaded by the unzipWix task); packageExe the .exe.
+      - name: Build the .msi and the .exe
+        shell: bash
+        run: ./gradlew --console=plain -p desktop packageInstaller packageExe
+
+      - name: Collect and name the installers
+        shell: bash
+        run: |
+          version=$(sed -n 's/^val appVersion = "\(.*\)"/\1/p' desktop/build.gradle.kts)
+          mkdir -p out
+          for f in desktop/build/compose/binaries/main/msi/*.msi; do cp "$f" "out/LokoTube-$version-windows-x64.msi"; done
+          for f in desktop/build/compose/binaries/main/exe/*.exe; do cp "$f" "out/LokoTube-$version-windows-x64.exe"; done
+          ls -la out
+
+      - name: Upload the packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: LokoTube-Windows
+          path: |
+            out/*.msi
+            out/*.exe
+          if-no-files-found: error
+
+      # On a version tag the .msi and the .exe go straight onto that release; a manual run can name
+      # the release (when the tag's own run failed), without moving the tag.
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE: ${{ inputs.release }}
+        shell: bash
+        run: |
+          tag="${RELEASE:-$GITHUB_REF_NAME}"
+          case "$tag" in v[0-9]*) ;; *) echo "Not a version tag: $tag"; exit 1 ;; esac
+          gh release view "$tag" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1 || gh release create "$tag" -R "$GITHUB_REPOSITORY" --title "LokoTube ${tag#v}" --notes "" || true
+          gh release upload "$tag" out/*.msi out/*.exe -R "$GITHUB_REPOSITORY" --clobber

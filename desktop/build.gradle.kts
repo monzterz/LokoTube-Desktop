@@ -1,6 +1,9 @@
 import java.security.MessageDigest
 import java.util.Base64
 import java.util.Properties
+import java.io.File
+import java.net.URI
+import java.util.zip.ZipFile
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -227,6 +230,38 @@ tasks.register<Sync>("stageAppJars") {
     from(tasks.named("jar"))
     from(configurations.named("runtimeClasspath"))
     into(layout.buildDirectory.dir("stage/$nativePlatform"))
+}
+
+// WiX 3.11 — jpackage's MSI builder on Windows. The runners don't ship it, so download and unzip it
+// into build/wix311, which packageInstaller then puts on jpackage's PATH.
+val wixUrl = "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip"
+tasks.register("unzipWix") {
+    val wixDir = layout.buildDirectory.dir("wix311")
+    val zipFile = layout.buildDirectory.file("wix311-binaries.zip")
+    inputs.property("wixUrl", wixUrl)
+    outputs.dir(wixDir)
+    doLast {
+        val wix = wixDir.get().asFile
+        val zip = zipFile.get().asFile
+        if (wix.resolve("candle.exe").isFile) return@doLast
+        wix.mkdirs()
+        if (!zip.isFile) {
+            URI(wixUrl).toURL().openStream().use { input ->
+                zip.parentFile.mkdirs()
+                zip.outputStream().use { output -> input.copyTo(output) }
+            }
+        }
+        ZipFile(zip).use { archive ->
+            archive.entries().asSequence().forEach { entry ->
+                val target = File(wix, entry.name)
+                if (entry.isDirectory) target.mkdirs()
+                else {
+                    target.parentFile.mkdirs()
+                    archive.getInputStream(entry).use { input -> target.outputStream().use { input.copyTo(it) } }
+                }
+            }
+        }
+    }
 }
 
 // The installer: jpackage's own, from wix/main.wxs, with LokoTube's pictures and "Open LokoTube" at the end.
