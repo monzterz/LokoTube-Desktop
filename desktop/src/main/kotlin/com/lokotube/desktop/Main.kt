@@ -319,7 +319,7 @@ fun main(args: Array<String>) {
                 state = windowState,
                 onPreviewKeyEvent = { handleKey(app, it, ::close) },
             ) {
-                if (!Os.isWindows) {
+                if (Os.isMac) {
                     LaunchedEffect(app.fullscreen) {
                         while (app.fullscreen) {
                             delay(FULLSCREEN_CHECK_MS)

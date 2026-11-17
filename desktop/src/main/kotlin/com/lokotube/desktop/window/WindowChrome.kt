@@ -105,6 +105,7 @@ object WindowChrome {
     private var window: ComposeWindow? = null
     private var savedStyle = 0L
     private var savedRect: WinDef.RECT? = null
+    private var savedMaximized = false
 
     /** False when the frame couldn't be taken over; the native title bar then stays. */
     val active = MutableStateFlow(false)
@@ -253,6 +254,22 @@ object WindowChrome {
 
     /** True full screen: no frame, over the taskbar, like a video. On a Mac, its own full screen. */
     fun setFullscreen(on: Boolean) {
+        if (Os.isLinux) {
+            val target = window ?: return
+            if (on == fullscreen) return
+            fullscreen = on
+            macFullscreenReached = false
+            // Real full screen is unreliable under some Linux WMs (Muffin/Cinnamon keeps the window
+            // undecorated and ignores _NET_WM_STATE removals, so the min/max/close buttons never
+            // come back). Maximize instead: the title bar and its buttons stay put.
+            if (on) {
+                savedMaximized = target.extendedState and Frame.MAXIMIZED_BOTH == Frame.MAXIMIZED_BOTH
+                target.extendedState = Frame.MAXIMIZED_BOTH
+            } else {
+                target.extendedState = if (savedMaximized) Frame.MAXIMIZED_BOTH else Frame.NORMAL
+            }
+            return
+        }
         if (!Os.isWindows) {
             val target = window ?: return
             if (on == fullscreen) return
@@ -330,7 +347,7 @@ object WindowChrome {
     /** Polled by the app while it shows full screen, so leaving it from the system's side (Mac, Linux) is noticed. */
     fun checkMacFullscreen() {
         val target = window ?: return
-        if (Os.isWindows || !fullscreen) return
+        if (Os.isWindows || Os.isLinux || !fullscreen) return
         val now = target.placement == WindowPlacement.Fullscreen
         when {
             now -> macFullscreenReached = true
