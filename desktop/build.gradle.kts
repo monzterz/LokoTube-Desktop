@@ -194,8 +194,11 @@ compose.desktop {
                 bundleID = "app.lokotube.desktop"
                 dockName = "LokoTube"
                 appCategory = "public.app-category.music"
-                packageVersion = appVersion
-                dmgPackageVersion = appVersion
+                // macOS jpackage rejects a version whose first number is zero ("0.1.0"): its
+                // app-version is one to three integers and the first must be >= 1. The release
+                // keeps the 0.1.X scheme elsewhere; the Mac bundle reports 1.0.0.
+                packageVersion = "1.0.0"
+                dmgPackageVersion = "1.0.0"
                 minimumSystemVersion = "12.0"
             }
             linux {
