@@ -1,14 +1,14 @@
-# SONARA (C) 2026, derived from Metrolist
+# LOKOTUBE (C) 2026, derived from Metrolist
 # Licensed under GPL-3.0 | See git history for contributors
 """
-Puts Sonara.app together away from a Mac, as a .zip a Mac opens as it is.
+Puts LokoTube.app together away from a Mac, as a .zip a Mac opens as it is.
 
 On a Mac, `./gradlew -p desktop packageDmg` makes the proper .dmg; jpackage can only package for
 the system it runs on. This does by hand what it does: the app's jars (from
-`./gradlew -p desktop stageAppJars -Psonara.natives=macosx-arm64`), a Mac Java runtime (a Temurin
+`./gradlew -p desktop stageAppJars -Plokotube.natives=macosx-arm64`), a Mac Java runtime (a Temurin
 JRE .tar.gz for the same architecture), the icon and an Info.plist, in the usual layout:
 
-    Sonara.app/Contents/{Info.plist, PkgInfo, MacOS/Sonara, app/*.jar, runtime/Contents/Home, Resources/Sonara.icns}
+    LokoTube.app/Contents/{Info.plist, PkgInfo, MacOS/LokoTube, app/*.jar, runtime/Contents/Home, Resources/LokoTube.icns}
 
 The runtime goes from the archive straight into the zip, so its executable bits and symbolic links
 survive Windows. The app is not signed: the first time, macOS asks for it to be allowed.
@@ -21,20 +21,20 @@ import tarfile
 import time
 import zipfile
 
-APP = "Sonara.app/Contents/"
-BUNDLE_ID = "app.sonara.desktop"
-MAIN_CLASS = "com.ermusic.desktop.MainKt"
+APP = "LokoTube.app/Contents/"
+BUNDLE_ID = "app.lokotube.desktop"
+MAIN_CLASS = "com.lokotube.desktop.MainKt"
 STAMP = time.localtime()[:6]
 
 LAUNCHER = """#!/bin/sh
-# Starts Sonara on the Java runtime inside the app.
+# Starts LokoTube on the Java runtime inside the app.
 CONTENTS="$(cd "$(dirname "$0")/.." && pwd)"
 exec "$CONTENTS/runtime/Contents/Home/bin/java" \\
   -Djpackage.app-version={version} -Dcompose.application.configure.swing.globals=true \\
   -Xmx512m -Dfile.encoding=UTF-8 \\
-  -Dapple.awt.application.appearance=system -Dapple.awt.application.name=Sonara \\
-  -Xdock:name=Sonara -Xdock:icon="$CONTENTS/Resources/Sonara.icns" \\
-  -Djpackage.app-path="$CONTENTS/MacOS/Sonara" \\
+  -Dapple.awt.application.appearance=system -Dapple.awt.application.name=LokoTube \\
+  -Xdock:name=LokoTube -Xdock:icon="$CONTENTS/Resources/LokoTube.icns" \\
+  -Djpackage.app-path="$CONTENTS/MacOS/LokoTube" \\
   -cp "$CONTENTS/app/*" {main} "$@"
 """
 
@@ -43,12 +43,12 @@ PLIST = """<?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0">
 <dict>
     <key>CFBundleDevelopmentRegion</key><string>en</string>
-    <key>CFBundleExecutable</key><string>Sonara</string>
-    <key>CFBundleIconFile</key><string>Sonara.icns</string>
+    <key>CFBundleExecutable</key><string>LokoTube</string>
+    <key>CFBundleIconFile</key><string>LokoTube.icns</string>
     <key>CFBundleIdentifier</key><string>{bundle_id}</string>
     <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
-    <key>CFBundleName</key><string>Sonara</string>
-    <key>CFBundleDisplayName</key><string>Sonara</string>
+    <key>CFBundleName</key><string>LokoTube</string>
+    <key>CFBundleDisplayName</key><string>LokoTube</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>{version}</string>
     <key>CFBundleVersion</key><string>{version}</string>
@@ -99,9 +99,9 @@ def main(jars_dir, jre, icon, version, target):
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as out:
         out.writestr(entry(APP + "Info.plist", 0o644), PLIST.format(bundle_id=BUNDLE_ID, version=version))
         out.writestr(entry(APP + "PkgInfo", 0o644), "APPL????")
-        out.writestr(entry(APP + "MacOS/Sonara", 0o755), LAUNCHER.replace("{main}", MAIN_CLASS).replace("{version}", version))
+        out.writestr(entry(APP + "MacOS/LokoTube", 0o755), LAUNCHER.replace("{main}", MAIN_CLASS).replace("{version}", version))
         with open(icon, "rb") as source:
-            out.writestr(entry(APP + "Resources/Sonara.icns", 0o644), source.read())
+            out.writestr(entry(APP + "Resources/LokoTube.icns", 0o644), source.read())
         for jar in jars:
             with open(os.path.join(jars_dir, jar), "rb") as source:
                 out.writestr(entry(APP + "app/" + jar, 0o644), source.read())
