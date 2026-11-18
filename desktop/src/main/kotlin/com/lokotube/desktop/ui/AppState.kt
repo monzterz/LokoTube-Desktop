@@ -18,6 +18,7 @@ import com.lokotube.desktop.data.Downloads
 import com.lokotube.desktop.playback.Credit
 import com.lokotube.desktop.playback.Player
 import com.lokotube.desktop.playback.Track
+import com.lokotube.desktop.playback.VideoPlayer
 import com.lokotube.desktop.playback.toTrack
 import com.lokotube.desktop.window.WindowChrome
 import com.lokotube.innertube.YouTube
@@ -74,6 +75,8 @@ sealed interface Route {
     data object History : Route
     data class ShelfAll(val title: String, val items: List<YTItem>) : Route
     data class ArtistItems(val title: String, val endpoint: BrowseEndpoint) : Route
+    data class Video(val id: String) : Route
+    data object Shorts : Route
 }
 
 const val LIKED_PLAYLIST_ID = "LM"
@@ -89,6 +92,9 @@ private const val HISTORY_READ_DELAY_MS = 7_000L
 class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () -> Unit) {
     private val history = mutableStateListOf<Route>(Route.Home)
     private var historyIndex by mutableIntStateOf(0)
+
+    /** Video playback (YouTube video + Shorts), separate from the music [player]. */
+    val videoPlayer = VideoPlayer(scope)
 
     val route: Route get() = history[historyIndex]
     val canGoBack: Boolean get() = historyIndex > 0
