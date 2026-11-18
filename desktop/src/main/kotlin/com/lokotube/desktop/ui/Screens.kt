@@ -70,6 +70,7 @@ import com.lokotube.innertube.YouTube
 import com.lokotube.innertube.models.AlbumItem
 import com.lokotube.innertube.models.PlaylistItem
 import com.lokotube.innertube.models.SongItem
+import com.lokotube.innertube.models.VideoItem
 import com.lokotube.innertube.models.YTItem
 import com.lokotube.innertube.pages.HomePage
 import com.lokotube.music.utils.YouTubePlaylistEditor
@@ -434,10 +435,10 @@ fun CategoryScreen(route: Route.Category, app: AppState) {
 
 // ---- Search ----
 
-private enum class SearchKind(val label: String, val filter: YouTube.SearchFilter?) {
+private enum class SearchKind(val label: String, val filter: YouTube.SearchFilter?, val regularVideos: Boolean = false) {
     All("All", null),
     Songs("Songs", YouTube.SearchFilter.FILTER_SONG),
-    Videos("Videos", YouTube.SearchFilter.FILTER_VIDEO),
+    Videos("Videos", null, regularVideos = true),
     Albums("Albums", YouTube.SearchFilter.FILTER_ALBUM),
     Artists("Artists", YouTube.SearchFilter.FILTER_ARTIST),
     Featured("Playlists", YouTube.SearchFilter.FILTER_FEATURED_PLAYLIST),
@@ -453,7 +454,18 @@ fun SearchResultsScreen(query: String, app: AppState) {
             items(SearchKind.entries, key = { it.name }, contentType = { "chip" }) { option -> Chip(option.label, option == kind) { kind = option } }
         }
         val filter = kind.filter
-        if (filter == null) {
+        if (kind.regularVideos) {
+            val videos by load(query) { YouTube.searchVideos(query) }
+            Loaded(videos, skeleton = { ListSkeleton() }) { found ->
+                if (found.isEmpty()) {
+                    Message("Nothing found for “$query”.")
+                } else {
+                    ScrollingColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(end = Spacing.S, bottom = Spacing.XXL)) {
+                        items(found, key = { it.id }, contentType = { "video" }) { VideoRow(it, app) }
+                    }
+                }
+            }
+        } else if (filter == null) {
             val summary by load(query) { YouTube.searchSummary(query, recordSearchHistory = YouTube.cookie != null) }
             Loaded(summary, skeleton = { Column { repeat(3) { ShelfSkeleton() } } }) { page ->
                 ScrollingColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(end = Spacing.S, bottom = Spacing.XXL)) {
@@ -486,6 +498,50 @@ fun SearchResultsScreen(query: String, app: AppState) {
 }
 
 // ---- Library ----
+
+@Composable
+private fun VideoRow(video: VideoItem, app: AppState) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        verticalAlignment = Alignment.Top,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable { app.go(Route.Video(video.id)) }
+                .handCursor()
+                .padding(end = Spacing.L, bottom = Spacing.M),
+    ) {
+        Box(Modifier.width(168.dp).height(94.dp).clip(ErShape.Medium)) {
+            Art(video.thumbnail, Modifier.fillMaxSize(), ErShape.Medium, pixels = 240)
+            video.duration?.let { duration ->
+                Text(
+                    formatTime(duration * 1000L),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White,
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(Spacing.XS)
+                            .clip(ErShape.Small)
+                            .background(Color.Black.copy(alpha = 0.8f))
+                            .padding(horizontal = Spacing.S, vertical = Spacing.XXS),
+                )
+            }
+        }
+        Spacer(Modifier.width(Spacing.M))
+        Column(Modifier.weight(1f)) {
+            Text(video.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(Spacing.XXS))
+            if (!video.channel.isNullOrBlank()) {
+                Text(video.channel, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            val meta = listOfNotNull(video.viewCountText, video.publishedText).joinToString(" · ")
+            if (meta.isNotBlank()) {
+                Text(meta, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}
 
 private enum class LibraryTab(val label: String) {
     All("All"),
