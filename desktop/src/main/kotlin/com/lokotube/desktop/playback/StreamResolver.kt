@@ -112,6 +112,11 @@ object StreamResolver {
             ContentHints().copy(wantVideo = true, sabrFirst = true, maxVideoHeight = maxHeight)
                 .withStreamCapabilities(allowHls = true, allowSabr = true, allowBoundedRange = true)
         val stream = extract(videoId, hints)
+        println(
+            "[LT-DEBUG] resolveVideo($videoId, max=$maxHeight): client=${stream.clientName} videoUrl=${stream.videoUrl} " +
+                "videoBootstrap=${stream.sabrVideoBootstrap != null} audioBootstrap=${stream.sabrBootstrap != null} " +
+                "heights=${stream.availableVideoHeights} sabrStreamingUrl=${stream.sabrVideoBootstrap?.serverAbrStreamingUrl}",
+        )
         return ResolvedVideoStream(
             audioUrl = stream.audioUrl,
             videoUrl = stream.videoUrl,

@@ -423,7 +423,7 @@ object YouTube {
     /** Regular videos from the standard YouTube home feed (`FEwhat_to_watch`). Personalized, so empty for guests. */
     suspend fun homeVideos(): Result<List<VideoItem>> =
         runCatching {
-            val response = innerTube.browse(YouTubeClient.WEB, browseId = "FEwhat_to_watch").body<HomeFeedResponse>()
+            val response = innerTube.browse(YouTubeClient.WEB, browseId = "FEwhat_to_watch", setLogin = true).body<HomeFeedResponse>()
             val grid =
                 response.contents
                     ?.twoColumnBrowseResultsRenderer
@@ -450,7 +450,7 @@ object YouTube {
     /** Shorts from the home feed's reel shelf (same `FEwhat_to_watch` browse). Empty for guests. */
     suspend fun homeShorts(): Result<List<VideoItem>> =
         runCatching {
-            val response = innerTube.browse(YouTubeClient.WEB, browseId = "FEwhat_to_watch").body<HomeFeedResponse>()
+            val response = innerTube.browse(YouTubeClient.WEB, browseId = "FEwhat_to_watch", setLogin = true).body<HomeFeedResponse>()
             val grid =
                 response.contents
                     ?.twoColumnBrowseResultsRenderer
