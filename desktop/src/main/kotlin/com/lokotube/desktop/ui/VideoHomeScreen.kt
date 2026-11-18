@@ -13,11 +13,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -52,7 +56,7 @@ fun VideoHomeScreen(app: AppState) {
         value = YouTube.homeVideos().getOrNull()
     }
 
-    Column(Modifier.fillMaxSize().padding(start = Spacing.L, top = Spacing.S)) {
+    Column(Modifier.fillMaxSize().padding(start = Spacing.L, top = Spacing.M, end = Spacing.L)) {
         Text("Video", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = Spacing.M))
         OutlinedTextField(
             value = query,
@@ -61,12 +65,13 @@ fun VideoHomeScreen(app: AppState) {
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { submitted = query.trim() }),
-            modifier = Modifier.fillMaxWidth().padding(end = Spacing.L),
+            modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(Spacing.M))
         val found = results
         val feed = home
         if (submitted.isNotBlank()) {
+            // Search results stay a list, as on YouTube's search page.
             when {
                 found == null -> Message("Searching…")
                 found.isEmpty() -> Message("Nothing found")
@@ -76,18 +81,62 @@ fun VideoHomeScreen(app: AppState) {
                     }
             }
         } else {
+            // The home feed is a grid of cards, like YouTube's desktop home.
             when {
                 feed == null -> Message("Loading…")
                 feed.isEmpty() -> Message("No feed yet — sign in for your home feed, or search above")
                 else ->
-                    ScrollingColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(end = Spacing.S, bottom = Spacing.XXL)) {
-                        items(feed, key = { it.id }, contentType = { "video" }) { VideoRow(it, app) }
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(minSize = 260.dp),
+                        contentPadding = PaddingValues(bottom = Spacing.XXL),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.M),
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        items(feed, key = { it.id }, contentType = { "video" }) { VideoCard(it, app) }
                     }
             }
         }
     }
 }
 
+/** A YouTube-desktop-style card: 16:9 thumbnail, then title, channel and "views · time ago". */
+@Composable
+private fun VideoCard(video: VideoItem, app: AppState) {
+    val colors = MaterialTheme.colorScheme
+    Column(
+        modifier = Modifier.fillMaxWidth().clickable { app.go(Route.Video(video.id)) }.handCursor(),
+    ) {
+        Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(ErShape.Medium)) {
+            Art(video.thumbnail, Modifier.fillMaxSize(), ErShape.Medium, pixels = 360)
+            video.duration?.let { duration ->
+                Text(
+                    formatTime(duration * 1000L),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White,
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(Spacing.XS)
+                            .clip(ErShape.Small)
+                            .background(Color.Black.copy(alpha = 0.8f))
+                            .padding(horizontal = Spacing.S, vertical = Spacing.XXS),
+                )
+            }
+        }
+        Spacer(Modifier.height(Spacing.S))
+        Text(video.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        if (!video.channel.isNullOrBlank()) {
+            Text(video.channel, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        val meta = listOfNotNull(video.viewCountText, video.publishedText).joinToString(" · ")
+        if (meta.isNotBlank()) {
+            Text(meta, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** A YouTube-search-style row: thumbnail on the left, details on the right. */
 @Composable
 internal fun VideoRow(video: VideoItem, app: AppState) {
     val colors = MaterialTheme.colorScheme
