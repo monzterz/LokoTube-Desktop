@@ -22,6 +22,8 @@ import com.lokotube.innertube.models.SectionListRenderer
 import com.lokotube.innertube.models.SongItem
 import com.lokotube.innertube.models.SponsorBlockSkipCategories
 import com.lokotube.innertube.models.SponsorSegment
+import com.lokotube.innertube.models.VideoDetail
+import com.lokotube.innertube.models.VideoItem
 import com.lokotube.innertube.models.WatchEndpoint
 import com.lokotube.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.lokotube.innertube.models.YTItem
@@ -45,6 +47,7 @@ import com.lokotube.innertube.models.response.GetTranscriptResponse
 import com.lokotube.innertube.models.response.NextResponse
 import com.lokotube.innertube.models.response.PlayerResponse
 import com.lokotube.innertube.models.response.SearchResponse
+import com.lokotube.innertube.models.response.VideoSearchResponse
 import com.lokotube.innertube.pages.AlbumPage
 import com.lokotube.innertube.pages.ArtistItemsContinuationPage
 import com.lokotube.innertube.pages.ArtistItemsPage
@@ -91,6 +94,9 @@ import kotlin.random.Random
  */
 object YouTube {
     private val innerTube = InnerTube()
+
+    /** WEB search "Videos" type filter. */
+    private const val VIDEO_SEARCH_PARAMS = "EgIQAQ%3D%3D"
 
     var offlineMode: Boolean
         get() = innerTube.offlineMode
@@ -393,6 +399,23 @@ object YouTube {
                             ?.getContinuation()
                     },
             )
+        }
+
+    /** Regular YouTube videos matching a query (WEB client, not the music search). */
+    suspend fun searchVideos(query: String): Result<List<VideoItem>> =
+        runCatching {
+            val response =
+                innerTube.search(YouTubeClient.WEB, query, VIDEO_SEARCH_PARAMS, setLogin = false).body<VideoSearchResponse>()
+            response.contents
+                ?.twoColumnSearchResultsRenderer
+                ?.primaryContents
+                ?.sectionListRenderer
+                ?.contents
+                ?.flatMap { it.itemSectionRenderer?.contents.orEmpty() }
+                ?.mapNotNull { it.videoRenderer }
+                ?.map { it.toVideoItem() }
+                .orEmpty()
+                .distinctBy { it.id }
         }
 
     suspend fun album(
@@ -2867,6 +2890,21 @@ object YouTube {
     ): Result<PlayerResponse> =
         runCatching {
             innerTube.player(client, videoId, playlistId, signatureTimestamp, poToken).body<PlayerResponse>()
+        }
+
+    /** The header metadata for a regular YouTube video. */
+    suspend fun videoDetail(videoId: String): Result<VideoDetail> =
+        runCatching {
+            val response = player(videoId, client = YouTubeClient.WEB).getOrThrow()
+            val details = response.videoDetails ?: error("No video details")
+            VideoDetail(
+                id = details.videoId,
+                title = details.title.orEmpty(),
+                channel = details.author.orEmpty(),
+                channelId = details.channelId,
+                durationSeconds = details.lengthSeconds.toLongOrNull() ?: 0,
+                viewCount = details.viewCount,
+            )
         }
 
     suspend fun registerPlayback(
