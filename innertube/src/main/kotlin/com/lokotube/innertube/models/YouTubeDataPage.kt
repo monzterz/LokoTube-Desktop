@@ -18,7 +18,26 @@ data class YouTubeDataPage(
         data class TwoColumnWatchNextResults(
             @SerialName("results")
             val results: Results? = null,
+            @SerialName("secondaryResults")
+            val secondaryResults: SecondaryResults? = null,
         ) {
+            @Serializable
+            data class SecondaryResults(
+                @SerialName("secondaryResults")
+                val secondaryResults: SecondaryResultsInner? = null,
+            ) {
+                @Serializable
+                data class SecondaryResultsInner(
+                    @SerialName("results")
+                    val results: List<Result?>? = null,
+                ) {
+                    @Serializable
+                    data class Result(
+                        @SerialName("lockupViewModel")
+                        val lockupViewModel: com.lokotube.innertube.models.WatchLockupViewModel? = null,
+                    )
+                }
+            }
             @Serializable
             data class Results(
                 @SerialName("results")

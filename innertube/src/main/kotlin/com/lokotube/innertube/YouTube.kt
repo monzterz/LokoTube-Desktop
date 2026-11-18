@@ -45,6 +45,7 @@ import com.lokotube.innertube.models.response.GetQueueResponse
 import com.lokotube.innertube.models.response.GetSearchSuggestionsResponse
 import com.lokotube.innertube.models.response.GetTranscriptResponse
 import com.lokotube.innertube.models.response.HomeFeedResponse
+import com.lokotube.innertube.models.response.allVideos
 import com.lokotube.innertube.models.response.NextResponse
 import com.lokotube.innertube.models.response.toVideoItem
 import com.lokotube.innertube.models.response.PlayerResponse
@@ -99,6 +100,7 @@ object YouTube {
 
     /** WEB search "Videos" type filter. */
     private const val VIDEO_SEARCH_PARAMS = "EgIQAQ%3D%3D"
+    private const val TRENDING_SEARCH_PARAMS = "CAMSAhAB"
 
     var offlineMode: Boolean
         get() = innerTube.offlineMode
@@ -420,10 +422,10 @@ object YouTube {
                 .distinctBy { it.id }
         }
 
-    /** Regular videos from the standard YouTube home feed (`FEwhat_to_watch`). Personalized, so empty for guests. */
-    suspend fun homeVideos(): Result<List<VideoItem>> =
+    /** Regular videos from a standard browse destination (e.g. the home feed or a destination like Live). */
+    private suspend fun browseVideos(browseId: String, setLogin: Boolean): Result<List<VideoItem>> =
         runCatching {
-            val response = innerTube.browse(YouTubeClient.WEB, browseId = "FEwhat_to_watch", setLogin = true).body<HomeFeedResponse>()
+            val response = innerTube.browse(YouTubeClient.WEB, browseId = browseId, setLogin = setLogin).body<HomeFeedResponse>()
             val grid =
                 response.contents
                     ?.twoColumnBrowseResultsRenderer
@@ -432,18 +434,34 @@ object YouTube {
                     ?.tabRenderer
                     ?.content
                     ?.richGridRenderer
-            grid
+            grid?.allVideos().orEmpty()
+        }
+
+    /** Regular videos from the standard YouTube home feed (`FEwhat_to_watch`). Personalized, so empty for guests. */
+    suspend fun homeVideos(): Result<List<VideoItem>> = browseVideos("FEwhat_to_watch", setLogin = true)
+
+    /** Guest-friendly recommendations: the home feed without login cookies (YouTube serves trending for logged-out users). */
+    suspend fun recommendedVideos(): Result<List<VideoItem>> {
+        val home = browseVideos("FEwhat_to_watch", setLogin = true).getOrElse { return trendingVideos() }
+        return if (home.isEmpty()) trendingVideos() else Result.success(home)
+    }
+
+    /** Currently live streams (`FElive_destination`). */
+    suspend fun liveVideos(): Result<List<VideoItem>> = browseVideos("FElive_destination", setLogin = false)
+
+    /** Trending: YouTube retired `FEtrending` (HTTP 400); approximate with a view-count-sorted search. */
+    suspend fun trendingVideos(): Result<List<VideoItem>> =
+        runCatching {
+            val response = innerTube.search(YouTubeClient.WEB, "", TRENDING_SEARCH_PARAMS, setLogin = false).body<VideoSearchResponse>()
+            response.contents
+                ?.twoColumnSearchResultsRenderer
+                ?.primaryContents
+                ?.sectionListRenderer
                 ?.contents
+                ?.flatMap { it.itemSectionRenderer?.contents.orEmpty() }
+                ?.mapNotNull { it.videoRenderer }
+                ?.map { it.toVideoItem() }
                 .orEmpty()
-                .flatMap { item ->
-                    item.richItemRenderer?.content?.let { c ->
-                        listOfNotNull(
-                            c.videoRenderer?.toVideoItem(),
-                            c.lockupViewModel?.toVideoItem(),
-                        )
-                    }.orEmpty()
-                }
-                .filter { it.id.isNotBlank() }
                 .distinctBy { it.id }
         }
 
@@ -2963,6 +2981,24 @@ object YouTube {
                 durationSeconds = details.lengthSeconds.toLongOrNull() ?: 0,
                 viewCount = details.viewCount,
             )
+        }
+
+    /** "Up next" videos for the right-hand sidebar, from the WEB `next` response. */
+    suspend fun relatedVideos(videoId: String): Result<List<VideoItem>> =
+        runCatching {
+            val response =
+                innerTube
+                    .next(YouTubeClient.WEB, videoId, null, null, null, null, null)
+                    .body<NextResponse>()
+            response.contents
+                .twoColumnWatchNextResults
+                ?.secondaryResults
+                ?.secondaryResults
+                ?.results
+                .orEmpty()
+                .mapNotNull { it?.lockupViewModel?.toVideoItem() }
+                .filter { it.id.isNotBlank() }
+                .distinctBy { it.id }
         }
 
     suspend fun registerPlayback(

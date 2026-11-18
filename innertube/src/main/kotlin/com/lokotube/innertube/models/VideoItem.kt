@@ -51,6 +51,99 @@ data class VideoRenderer(
         )
 }
 
+/** "Up next" renderer from the WEB `next` response's secondary results. */
+@Serializable
+data class WatchLockupViewModel(
+    val contentId: String? = null,
+    val contentImage: ContentImage? = null,
+    val metadata: Metadata? = null,
+) {
+    @Serializable
+    data class ContentImage(
+        val thumbnailViewModel: ThumbnailViewModel? = null,
+    ) {
+        @Serializable
+        data class ThumbnailViewModel(
+            val image: Image? = null,
+            val overlays: List<Overlay>? = null,
+        ) {
+            @Serializable
+            data class Image(
+                val sources: List<Source>? = null,
+            ) {
+                @Serializable
+                data class Source(val url: String? = null)
+            }
+        }
+
+        @Serializable
+        data class Overlay(
+            val thumbnailBottomOverlayViewModel: ThumbnailBottomOverlayViewModel? = null,
+        ) {
+            @Serializable
+            data class ThumbnailBottomOverlayViewModel(
+                val badges: List<Badge>? = null,
+            ) {
+                @Serializable
+                data class Badge(
+                    val thumbnailBadgeViewModel: ThumbnailBadgeViewModel? = null,
+                ) {
+                    @Serializable
+                    data class ThumbnailBadgeViewModel(
+                        val text: String? = null,
+                    )
+                }
+            }
+        }
+    }
+
+    @Serializable
+    data class Metadata(
+        val lockupMetadataViewModel: LockupMetadataViewModel? = null,
+    ) {
+        @Serializable
+        data class LockupMetadataViewModel(
+            val title: Title? = null,
+            val metadata: MetadataContent? = null,
+        ) {
+            @Serializable
+            data class Title(val content: String? = null)
+
+            @Serializable
+            data class MetadataContent(val contentMetadataViewModel: ContentMetadataViewModel? = null) {
+                @Serializable
+                data class ContentMetadataViewModel(val metadataRows: List<MetadataRow>? = null) {
+                    @Serializable
+                    data class MetadataRow(val metadataParts: List<MetadataPart>? = null) {
+                        @Serializable
+                        data class MetadataPart(val text: Text? = null) {
+                            @Serializable
+                            data class Text(val content: String? = null)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun toVideoItem(): VideoItem {
+        val rows = metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel?.metadataRows.orEmpty()
+        val channel = rows.getOrNull(0)?.metadataParts?.firstOrNull()?.text?.content
+        val parts = rows.getOrNull(1)?.metadataParts.orEmpty()
+        val duration = contentImage?.thumbnailViewModel?.overlays?.firstOrNull()?.thumbnailBottomOverlayViewModel?.badges?.firstOrNull()?.thumbnailBadgeViewModel?.text?.toDurationSeconds()
+        return VideoItem(
+            id = contentId ?: "",
+            title = metadata?.lockupMetadataViewModel?.title?.content.orEmpty(),
+            thumbnail = contentImage?.thumbnailViewModel?.image?.sources?.lastOrNull()?.url,
+            channel = channel,
+            channelId = null,
+            duration = duration,
+            viewCountText = parts.getOrNull(0)?.text?.content,
+            publishedText = parts.getOrNull(1)?.text?.content,
+        )
+    }
+}
+
 /** "3:33" or "1:02:03" -> seconds, or null when it isn't a duration. */
 private fun String.toDurationSeconds(): Int? {
     val parts = trim().split(":")

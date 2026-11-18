@@ -19,9 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,23 +38,36 @@ import com.lokotube.innertube.models.VideoItem
 /** A dedicated section for regular YouTube videos, separate from the music Home. */
 @Composable
 fun VideoHomeScreen(app: AppState) {
-    val home by produceState<List<VideoItem>?>(null) {
-        value = YouTube.homeVideos().getOrNull()
+    val live by produceState<List<VideoItem>?>(null) { value = YouTube.liveVideos().getOrNull() }
+    val trending by produceState<List<VideoItem>?>(null) { value = YouTube.trendingVideos().getOrNull() }
+    val recommended by produceState<List<VideoItem>?>(null) { value = YouTube.recommendedVideos().getOrNull() }
+
+    ScrollingColumn(
+        Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = Spacing.L, top = Spacing.M, end = Spacing.L, bottom = Spacing.XXL),
+    ) {
+        item(key = "live") { VideoShelf("Live", live, app) }
+        item(key = "trending") { VideoShelf("Trending", trending, app) }
+        item(key = "recommended") { VideoShelf("Recommended", recommended, app) }
     }
-    val feed = home
-    when {
-        feed == null -> Message("Loading…")
-        feed.isEmpty() -> Message("No feed yet — sign in for your home feed, or search above")
-        else ->
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 260.dp),
-                contentPadding = PaddingValues(start = Spacing.L, top = Spacing.M, end = Spacing.L, bottom = Spacing.XXL),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.M),
-                verticalArrangement = Arrangement.spacedBy(Spacing.M),
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                items(feed, key = { it.id }, contentType = { "video" }) { VideoCard(it, app) }
-            }
+}
+
+/** A titled row of video cards that scrolls sideways, like YouTube's home shelves. */
+@Composable
+private fun VideoShelf(title: String, videos: List<VideoItem>?, app: AppState) {
+    val colors = MaterialTheme.colorScheme
+    Column(Modifier.padding(bottom = Spacing.M)) {
+        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = Spacing.S))
+        when {
+            videos == null -> Text("Loading…", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+            videos.isEmpty() -> Text("Nothing here", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+            else ->
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                    items(videos, key = { it.id }, contentType = { "video" }) { video ->
+                        Box(Modifier.width(240.dp)) { VideoCard(video, app) }
+                    }
+                }
+        }
     }
 }
 

@@ -10,14 +10,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -32,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,13 +49,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.lokotube.desktop.playback.VideoPlayer
 import com.lokotube.desktop.playback.VideoState
+import com.lokotube.innertube.YouTube
+import com.lokotube.innertube.models.VideoItem
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 
-/** A YouTube video: the decoded frame full-bleed, with a frosted transport bar over it. */
+/** A YouTube video: the decoded frame on the left, an "Up next" sidebar on the right (hidden in fullscreen). */
 @Composable
 fun VideoScreen(videoId: String, app: AppState) {
     val player = app.videoPlayer
@@ -61,36 +68,73 @@ fun VideoScreen(videoId: String, app: AppState) {
     LaunchedEffect(videoId) {
         if (state.videoId != videoId) player.play(videoId, height = DEFAULT_HEIGHT)
     }
+    // During AnimatedContent's cross-fade both the old and new VideoScreen coexist briefly; the old
+    // one's onDispose fires *after* the new one's play(). So only stop the player when this screen's
+    // video is still the active one — i.e. we're really leaving the video, not handing off to another.
     DisposableEffect(videoId) {
-        onDispose { player.stop() }
+        onDispose {
+            if (player.state.value.videoId == videoId) player.stop()
+        }
     }
 
     // The video is inherently dark; the transport uses the dark theme's glass so its controls match
     // the music player bar (same teal play/pause, thin seek bar and frosted strip).
     LokotubeTheme(forceDark = true) {
         val hazeState = rememberHazeState()
-        Box(Modifier.fillMaxSize().background(Color.Black)) {
-            Box(Modifier.fillMaxSize().hazeSource(hazeState), contentAlignment = Alignment.Center) {
-                val image = frame
-                val error = state.error
-                if (image != null) {
-                    Image(
-                        bitmap = image.toComposeImageBitmap(),
-                        contentDescription = "Video",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize().clickable { player.toggle() },
-                    )
-                } else {
-                    Box(Modifier.fillMaxSize().clickable { player.toggle() }, contentAlignment = Alignment.Center) {
-                        when {
-                            error != null -> Text(error, color = Color.White, style = MaterialTheme.typography.bodyMedium)
-                            state.loading -> CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                            else -> Text("Play", color = Color.White, style = MaterialTheme.typography.titleMedium)
+        val related by produceState<List<VideoItem>?>(null, videoId) {
+            value = YouTube.relatedVideos(videoId).getOrNull()
+        }
+        Row(Modifier.fillMaxSize()) {
+            Box(Modifier.weight(1f).fillMaxHeight().background(Color.Black)) {
+                Box(Modifier.fillMaxSize().hazeSource(hazeState), contentAlignment = Alignment.Center) {
+                    val image = frame
+                    val error = state.error
+                    if (image != null) {
+                        Image(
+                            bitmap = image.toComposeImageBitmap(),
+                            contentDescription = "Video",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize().clickable { player.toggle() },
+                        )
+                    } else {
+                        Box(Modifier.fillMaxSize().clickable { player.toggle() }, contentAlignment = Alignment.Center) {
+                            when {
+                                error != null -> Text(error, color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                                state.loading -> CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                                else -> Text("Play", color = Color.White, style = MaterialTheme.typography.titleMedium)
+                            }
                         }
                     }
                 }
+                VideoControls(player, state, position, hazeState, app, Modifier.align(Alignment.BottomCenter))
             }
-            VideoControls(player, state, position, hazeState, app, Modifier.align(Alignment.BottomCenter))
+            if (!app.videoFullscreen) {
+                UpNextSidebar(related, app, Modifier.width(UP_NEXT_WIDTH).fillMaxHeight())
+            }
+        }
+    }
+}
+
+/** The YouTube-style "Up next" list shown to the right of the playing video. */
+@Composable
+private fun UpNextSidebar(videos: List<VideoItem>?, app: AppState, modifier: Modifier) {
+    val colors = MaterialTheme.colorScheme
+    Column(modifier.background(colors.surface)) {
+        Text(
+            "Up next",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(start = Spacing.M, top = Spacing.M, end = Spacing.M, bottom = Spacing.S),
+        )
+        when {
+            videos == null -> Text("Loading…", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant, modifier = Modifier.padding(horizontal = Spacing.M))
+            videos.isEmpty() -> Text("Nothing here", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant, modifier = Modifier.padding(horizontal = Spacing.M))
+            else ->
+                ScrollingColumn(
+                    Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = Spacing.M, end = Spacing.M, top = Spacing.S, bottom = Spacing.XXL),
+                ) {
+                    items(videos, key = { it.id }, contentType = { "video" }) { VideoRow(it, app) }
+                }
         }
     }
 }
@@ -179,6 +223,9 @@ private fun VideoControls(player: VideoPlayer, state: VideoState, position: Long
 
 /** Software VP9/AVC decode is heavy; start at 720p and let the user raise it in the quality menu. */
 private const val DEFAULT_HEIGHT = 720
+
+/** Width of the "Up next" sidebar next to the playing video. */
+private val UP_NEXT_WIDTH = 340.dp
 
 /** The dark theme's teal accent, for the play/pause and transport accents over the dark video. */
 private val VIDEO_ACCENT = Color(0xFF2DD4BF)

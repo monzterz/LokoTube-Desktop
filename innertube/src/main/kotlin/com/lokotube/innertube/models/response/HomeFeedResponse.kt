@@ -74,7 +74,8 @@ data class HomeFeedResponse(
 
     @Serializable
     data class RichShelfRenderer(
-        val content: ShelfContent?,
+        val content: ShelfContent? = null,
+        val contents: List<Item>? = null,
     )
 
     @Serializable
@@ -189,3 +190,21 @@ fun LockupViewModel.toVideoItem() =
         viewCountText = null,
         publishedText = null,
     )
+
+/** Flattens every video in the grid, including those nested in shelves (e.g. the Live destination). */
+fun HomeFeedResponse.RichGridRenderer.allVideos(): List<VideoItem> {
+    val result = mutableListOf<VideoItem>()
+    contents.orEmpty().forEach { item ->
+        item.richItemRenderer?.content?.let { c ->
+            c.videoRenderer?.let { result += it.toVideoItem() }
+            c.lockupViewModel?.let { result += it.toVideoItem() }
+        }
+        item.richSectionRenderer?.content?.richShelfRenderer?.contents.orEmpty().forEach { shelfItem ->
+            shelfItem.richItemRenderer?.content?.let { c ->
+                c.videoRenderer?.let { result += it.toVideoItem() }
+                c.lockupViewModel?.let { result += it.toVideoItem() }
+            }
+        }
+    }
+    return result.filter { it.id.isNotBlank() }.distinctBy { it.id }
+}
