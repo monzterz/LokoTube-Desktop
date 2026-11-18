@@ -5,22 +5,39 @@
 
 package com.lokotube.desktop.ui
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
+import com.lokotube.innertube.YouTube
+import com.lokotube.innertube.models.VideoItem
 
-/** Vertical Shorts feed. The data layer (reel endpoint) lands in Fase 3; this is the shell. */
+/** Shorts feed from the home reel shelf. Empty for guests (personalized feed). */
 @Composable
 fun ShortsScreen(app: AppState) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(
-            "Shorts coming soon",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+    val shorts by produceState<List<VideoItem>?>(null) {
+        value = YouTube.homeShorts().getOrNull()
+    }
+
+    Column(Modifier.fillMaxSize().padding(start = Spacing.L, top = Spacing.S)) {
+        Text("Shorts", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = Spacing.M))
+        val feed = shorts
+        when {
+            feed == null -> Message("Loading…")
+            feed.isEmpty() -> Message("No shorts yet — sign in for your feed")
+            else ->
+                ScrollingColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(end = Spacing.S, bottom = Spacing.XXL)) {
+                    items(feed, key = { it.id }, contentType = { "short" }) { VideoRow(it, app) }
+                }
+        }
     }
 }

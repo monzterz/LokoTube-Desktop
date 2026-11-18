@@ -48,6 +48,9 @@ fun VideoHomeScreen(app: AppState) {
     val results by produceState<List<VideoItem>?>(null, submitted) {
         value = if (submitted.isBlank()) null else YouTube.searchVideos(submitted).getOrNull()
     }
+    val home by produceState<List<VideoItem>?>(null) {
+        value = YouTube.homeVideos().getOrNull()
+    }
 
     Column(Modifier.fillMaxSize().padding(start = Spacing.L, top = Spacing.S)) {
         Text("Video", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = Spacing.M))
@@ -62,19 +65,31 @@ fun VideoHomeScreen(app: AppState) {
         )
         Spacer(Modifier.height(Spacing.M))
         val found = results
-        when {
-            found == null -> Message("Search for videos")
-            found.isEmpty() -> Message("Nothing found")
-            else ->
-                ScrollingColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(end = Spacing.S, bottom = Spacing.XXL)) {
-                    items(found, key = { it.id }, contentType = { "video" }) { VideoRow(it, app) }
-                }
+        val feed = home
+        if (submitted.isNotBlank()) {
+            when {
+                found == null -> Message("Searching…")
+                found.isEmpty() -> Message("Nothing found")
+                else ->
+                    ScrollingColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(end = Spacing.S, bottom = Spacing.XXL)) {
+                        items(found, key = { it.id }, contentType = { "video" }) { VideoRow(it, app) }
+                    }
+            }
+        } else {
+            when {
+                feed == null -> Message("Loading…")
+                feed.isEmpty() -> Message("No feed yet — sign in for your home feed, or search above")
+                else ->
+                    ScrollingColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(end = Spacing.S, bottom = Spacing.XXL)) {
+                        items(feed, key = { it.id }, contentType = { "video" }) { VideoRow(it, app) }
+                    }
+            }
         }
     }
 }
 
 @Composable
-private fun VideoRow(video: VideoItem, app: AppState) {
+internal fun VideoRow(video: VideoItem, app: AppState) {
     val colors = MaterialTheme.colorScheme
     Row(
         verticalAlignment = Alignment.Top,

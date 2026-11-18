@@ -44,7 +44,9 @@ import com.lokotube.innertube.models.response.FeedbackResponse
 import com.lokotube.innertube.models.response.GetQueueResponse
 import com.lokotube.innertube.models.response.GetSearchSuggestionsResponse
 import com.lokotube.innertube.models.response.GetTranscriptResponse
+import com.lokotube.innertube.models.response.HomeFeedResponse
 import com.lokotube.innertube.models.response.NextResponse
+import com.lokotube.innertube.models.response.toVideoItem
 import com.lokotube.innertube.models.response.PlayerResponse
 import com.lokotube.innertube.models.response.SearchResponse
 import com.lokotube.innertube.models.response.VideoSearchResponse
@@ -415,6 +417,62 @@ object YouTube {
                 ?.mapNotNull { it.videoRenderer }
                 ?.map { it.toVideoItem() }
                 .orEmpty()
+                .distinctBy { it.id }
+        }
+
+    /** Regular videos from the standard YouTube home feed (`FEwhat_to_watch`). Personalized, so empty for guests. */
+    suspend fun homeVideos(): Result<List<VideoItem>> =
+        runCatching {
+            val response = innerTube.browse(YouTubeClient.WEB, browseId = "FEwhat_to_watch").body<HomeFeedResponse>()
+            val grid =
+                response.contents
+                    ?.twoColumnBrowseResultsRenderer
+                    ?.tabs
+                    ?.firstOrNull()
+                    ?.tabRenderer
+                    ?.content
+                    ?.richGridRenderer
+            grid
+                ?.contents
+                .orEmpty()
+                .flatMap { item ->
+                    item.richItemRenderer?.content?.let { c ->
+                        listOfNotNull(
+                            c.videoRenderer?.toVideoItem(),
+                            c.lockupViewModel?.toVideoItem(),
+                        )
+                    }.orEmpty()
+                }
+                .filter { it.id.isNotBlank() }
+                .distinctBy { it.id }
+        }
+
+    /** Shorts from the home feed's reel shelf (same `FEwhat_to_watch` browse). Empty for guests. */
+    suspend fun homeShorts(): Result<List<VideoItem>> =
+        runCatching {
+            val response = innerTube.browse(YouTubeClient.WEB, browseId = "FEwhat_to_watch").body<HomeFeedResponse>()
+            val grid =
+                response.contents
+                    ?.twoColumnBrowseResultsRenderer
+                    ?.tabs
+                    ?.firstOrNull()
+                    ?.tabRenderer
+                    ?.content
+                    ?.richGridRenderer
+            grid
+                ?.contents
+                .orEmpty()
+                .flatMap { item ->
+                    item.richSectionRenderer
+                        ?.content
+                        ?.richShelfRenderer
+                        ?.content
+                        ?.reelShelfRenderer
+                        ?.items
+                        .orEmpty()
+                        .mapNotNull { it.reelItemRenderer?.toVideoItem() }
+                }
+                .filter { it.id.isNotBlank() }
                 .distinctBy { it.id }
         }
 
