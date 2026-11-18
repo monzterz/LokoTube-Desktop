@@ -416,7 +416,7 @@ fun Sidebar(app: AppState) {
     var query by remember { mutableStateOf("") }
     var sortOpen by remember { mutableStateOf(false) }
     var createOpen by remember { mutableStateOf(false) }
-    Column(Modifier.width(Size.Sidebar).fillMaxHeight().panel().padding(top = if (app.route is Route.Video) Spacing.S else Size.TitleBar + Spacing.S, start = Spacing.S, end = Spacing.S, bottom = Spacing.S)) {
+    Column(Modifier.width(Size.Sidebar).fillMaxHeight().panel().padding(top = Size.TitleBar + Spacing.S, start = Spacing.S, end = Spacing.S, bottom = Spacing.S)) {
         NavRow(if (route == Route.Home) "nav_home_on" else "nav_home_off", "Home", route == Route.Home) { app.go(Route.Home) }
         NavRow("explore_outlined", "Browse", route == Route.Browse) { app.go(Route.Browse) }
         NavRow(if (route == Route.Library) "nav_library_on" else "nav_library_off", "Library", route == Route.Library) { app.go(Route.Library) }

@@ -421,7 +421,7 @@ private fun handleKey(app: AppState, event: KeyEvent, closeWindow: () -> Unit): 
     }
     when (event.key) {
         Key.F11 -> {
-            app.toggleFullscreen()
+            if (app.route is Route.Video) app.toggleVideoFullscreen() else app.toggleFullscreen()
             return true
         }
         Key.Escape -> {
@@ -535,6 +535,11 @@ private fun App(app: AppState) {
         if (state.current != null && Settings.openNowPlaying.value && !app.sidePanelDismissed && app.sidePanel == null) app.sidePanel = SidePanel.NowPlaying
     }
 
+    val videoFullscreen = app.videoFullscreen && app.route is Route.Video
+    LaunchedEffect(app.route) {
+        if (app.route !is Route.Video && app.videoFullscreen) app.changeVideoFullscreen(false)
+    }
+
     Box(
         Modifier
             .fillMaxSize()
@@ -549,9 +554,9 @@ private fun App(app: AppState) {
     ) {
         val hazeState = rememberHazeState()
         Row(Modifier.fillMaxSize().padding(horizontal = Spacing.S).hazeSource(hazeState), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Sidebar(app)
+            if (!videoFullscreen) Sidebar(app)
             CenterPane(app, state, Modifier.weight(1f).fillMaxHeight())
-            if (state.current != null) {
+            if (!videoFullscreen && state.current != null) {
                 when (app.sidePanel) {
                     SidePanel.NowPlaying -> NowPlayingPanel(app, state)
                     SidePanel.Queue -> QueuePanel(app, state)
@@ -559,7 +564,7 @@ private fun App(app: AppState) {
                 }
             }
         }
-        if (app.route !is Route.Video) {
+        if (!videoFullscreen) {
             TitleBar(app, search, { search = it }, { if (it) searchOpen = true }, { searchOpen = false }, focus, hazeState, Modifier.align(Alignment.TopCenter))
         }
         if (!app.isVideoSection) {
@@ -602,7 +607,7 @@ private fun App(app: AppState) {
 private fun CenterPane(app: AppState, state: PlayerState, modifier: Modifier) {
     val online by Connection.online.collectAsState()
     Box(modifier.clip(ErShape.Medium).appBackdrop()) {
-        Column(Modifier.fillMaxSize().then(if (app.route is Route.Video) Modifier else Modifier.padding(top = Size.TitleBar))) {
+        Column(Modifier.fillMaxSize().then(if (app.videoFullscreen && app.route is Route.Video) Modifier else Modifier.padding(top = Size.TitleBar))) {
             AnimatedVisibility(!online) { OfflineStrip(app) }
             AnimatedContent(
                 targetState = app.route,

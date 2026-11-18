@@ -90,13 +90,13 @@ fun VideoScreen(videoId: String, app: AppState) {
                     }
                 }
             }
-            VideoControls(player, state, position, hazeState, Modifier.align(Alignment.BottomCenter))
+            VideoControls(player, state, position, hazeState, app, Modifier.align(Alignment.BottomCenter))
         }
     }
 }
 
 @Composable
-private fun VideoControls(player: VideoPlayer, state: VideoState, position: Long, hazeState: HazeState, modifier: Modifier) {
+private fun VideoControls(player: VideoPlayer, state: VideoState, position: Long, hazeState: HazeState, app: AppState, modifier: Modifier) {
     val colors = MaterialTheme.colorScheme
     var qualityOpen by remember { mutableStateOf(false) }
     var dragPosition by remember { mutableStateOf<Float?>(null) }
@@ -166,6 +166,14 @@ private fun VideoControls(player: VideoPlayer, state: VideoState, position: Long
                 }
             }
         }
+        SymbolButton(
+            "fullscreen",
+            if (app.videoFullscreen) "Exit full screen" else "Full screen",
+            Modifier.size(Size.Control),
+            tint = Color.White,
+            iconSize = Size.IconSmall,
+            glass = true,
+        ) { app.toggleVideoFullscreen() }
     }
 }
 

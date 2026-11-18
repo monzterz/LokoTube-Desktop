@@ -122,6 +122,10 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
     var miniPlayer by mutableStateOf(false)
     var fullscreen by mutableStateOf(false)
         private set
+
+    /** Fullscreen for the video player (hides the chrome); separate from the music [fullscreen]. */
+    var videoFullscreen by mutableStateOf(false)
+        private set
     var editing by mutableStateOf<PlaylistItem?>(null)
     var addingSongsTo by mutableStateOf<PlaylistItem?>(null)
     var collaborating by mutableStateOf<PlaylistItem?>(null)
@@ -199,6 +203,14 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
 
     fun changeFullscreen(on: Boolean) {
         fullscreen = on
+        WindowChrome.setFullscreen(on)
+    }
+
+    fun toggleVideoFullscreen() = changeVideoFullscreen(!videoFullscreen)
+
+    fun changeVideoFullscreen(on: Boolean) {
+        if (videoFullscreen == on) return
+        videoFullscreen = on
         WindowChrome.setFullscreen(on)
     }
 
