@@ -130,3 +130,57 @@ class JavaCvVideoRenderer(
         const val US_PER_MS = 1000L
     }
 }
+
+/**
+ * Decodes a live HLS manifest (`.m3u8`) straight from its URL. FFmpeg's HLS demuxer handles the
+ * playlist and segment downloads itself, so unlike the SABR path there is no producer pipe to fill.
+ * Live streams have no seek and no known end, so duration is 0 and [seek] is a no-op.
+ */
+class HlsVideoRenderer(
+    url: String,
+    headers: Map<String, String> = emptyMap(),
+) : VideoRenderer {
+    private val converter = Java2DFrameConverter()
+    private val grabber: FFmpegFrameGrabber
+
+    override var width = 0
+        private set
+    override var height = 0
+        private set
+
+    override val durationMs = 0L
+
+    init {
+        grabber =
+            FFmpegFrameGrabber(url).also {
+                it.setOption("probesize", "1000000")
+                it.setOption("analyzeduration", "1000000")
+                it.setOption("reconnect", "1")
+                it.setOption("reconnect_streamed", "1")
+                if (headers.isNotEmpty()) {
+                    it.setOption("headers", headers.entries.joinToString("\r\n") { (k, v) -> "$k: $v" })
+                }
+                it.start()
+            }
+        width = grabber.imageWidth
+        height = grabber.imageHeight
+    }
+
+    override fun nextFrame(): VideoRenderer.Frame? {
+        val frame = grabber.grab() ?: return null
+        val image = converter.convert(frame) ?: return null
+        return VideoRenderer.Frame(image, grabber.timestamp / US_PER_MS)
+    }
+
+    override fun seek(ms: Long) {
+        // A live HLS playlist can't be seeked arbitrarily.
+    }
+
+    override fun close() {
+        runCatching { grabber.close() }
+    }
+
+    private companion object {
+        const val US_PER_MS = 1000L
+    }
+}

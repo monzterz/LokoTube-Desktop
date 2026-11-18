@@ -145,16 +145,21 @@ class VideoPlayer(private val scope: CoroutineScope) {
         @Volatile var clockStartMs = 0L
 
         override fun run() {
-            val audioThread = if (audio != null) thread(name = "lokotube-video-audio", isDaemon = true) { pumpAudio(audio) } else null
+            val audioThread =
+                when {
+                    audio != null -> thread(name = "lokotube-video-audio", isDaemon = true) { pumpSabrAudio(audio) }
+                    streams.hlsAudioUrl != null -> thread(name = "lokotube-video-audio", isDaemon = true) { pumpHlsAudio(streams.hlsAudioUrl) }
+                    else -> null
+                }
             try {
-                pumpVideo(video)
+                pumpVideo()
             } finally {
                 audioThread?.join(1_000)
                 if (!cancelled) mutableState.update { it.copy(playing = false) }
             }
         }
 
-        private fun pumpAudio(stream: SabrAudioStream) {
+        private fun pumpSabrAudio(stream: SabrAudioStream) {
             val file = File.createTempFile("lokotube-a", ".m4a")
             var bytes = ByteArray(BUFFER_BYTES)
             try {
@@ -214,12 +219,67 @@ class VideoPlayer(private val scope: CoroutineScope) {
             }
         }
 
-        private fun pumpVideo(stream: SabrVideoStream?) {
-            if (stream == null) {
-                mutableState.update { it.copy(loading = false, playing = false, error = "This video can't be played right now") }
-                return
+        private fun pumpHlsAudio(url: String) {
+            var bytes = ByteArray(BUFFER_BYTES)
+            try {
+                avutil.av_log_set_level(avutil.AV_LOG_QUIET)
+                FFmpegFrameGrabber(url).use { grabber ->
+                    grabber.setOption("reconnect", "1")
+                    grabber.setOption("reconnect_streamed", "1")
+                    grabber.sampleMode = FrameGrabber.SampleMode.SHORT
+                    grabber.audioChannels = CHANNELS
+                    grabber.sampleRate = SAMPLE_RATE
+                    grabber.start()
+                    val format = AudioFormat(SAMPLE_RATE.toFloat(), BITS, CHANNELS, true, false)
+                    val line =
+                        try {
+                            AudioSystem.getSourceDataLine(format).also { it.open(format, BUFFER_BYTES); it.start() }
+                        } catch (_: Exception) {
+                            null
+                        }
+                    while (!cancelled) {
+                        val state = mutableState.value
+                        if (!state.playing) {
+                            if (line?.isRunning == true) line.stop()
+                            sleep(PAUSE_POLL_MS)
+                            continue
+                        }
+                        if (line?.isRunning == false) line.start()
+                        val frame = grabber.grabSamples() ?: break
+                        val samples = frame.samples?.getOrNull(0) as? ShortBuffer ?: continue
+                        val count = samples.remaining()
+                        if (line != null) {
+                            if (count * 2 > bytes.size) bytes = ByteArray(count * 2)
+                            val gain = if (state.muted) 0f else state.volume * state.volume
+                            var i = 0
+                            while (i + 1 < count) {
+                                val left = samples.get().toDouble() * gain
+                                val right = samples.get().toDouble() * gain
+                                writeSample(bytes, i, left)
+                                writeSample(bytes, i + 1, right)
+                                i += 2
+                            }
+                            line.write(bytes, 0, count * 2)
+                        }
+                    }
+                    if (!cancelled) line?.drain()
+                    line?.close()
+                }
+            } catch (error: Exception) {
+                if (!cancelled) mutableState.update { it.copy(playing = false, error = "Audio can't be played right now") }
             }
-            val renderer = JavaCvVideoRenderer(stream, scope, streams.durationMs, streams.videoMimeType)
+        }
+
+        private fun pumpVideo() {
+            val renderer =
+                when {
+                    streams.hlsVideoUrl != null -> HlsVideoRenderer(streams.hlsVideoUrl)
+                    video != null -> JavaCvVideoRenderer(video, scope, streams.durationMs, streams.videoMimeType)
+                    else -> {
+                        mutableState.update { it.copy(loading = false, playing = false, error = "This video can't be played right now") }
+                        return
+                    }
+                }
             try {
                 mutableState.update { it.copy(durationMs = renderer.durationMs, loading = false, height = streams.height, availableHeights = streams.availableHeights) }
                 clockStartMs = System.currentTimeMillis()
@@ -231,7 +291,16 @@ class VideoPlayer(private val scope: CoroutineScope) {
                         clockStartMs += System.currentTimeMillis() - pausedAt
                         if (cancelled) break
                     }
-                    val frame = renderer.nextFrame() ?: break
+                    val frame = renderer.nextFrame()
+                    if (frame == null) {
+                        // A live HLS playlist returns null while it waits for the next segment
+                        // (it has caught up to the live edge) — retry, don't treat it as EOF.
+                        if (streams.isLiveHls) {
+                            sleep(LIVE_RETRY_MS)
+                            continue
+                        }
+                        break
+                    }
                     // Throttle to the wall clock: play in real time, independent of audio readiness.
                     while (!cancelled && mutableState.value.playing) {
                         val elapsed = System.currentTimeMillis() - clockStartMs
@@ -269,6 +338,7 @@ class VideoPlayer(private val scope: CoroutineScope) {
         const val US_PER_MS = 1000L
         const val PAUSE_POLL_MS = 30L
         const val SYNC_POLL_MS = 5L
+        const val LIVE_RETRY_MS = 500L
         const val AUDIO_SEEK_THRESHOLD_MS = 500L
     }
 }

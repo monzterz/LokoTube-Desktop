@@ -76,7 +76,12 @@ data class VideoStreams(
     val durationMs: Long,
     /** Container hint from YouTube (e.g. "video/mp4" for AVC/AV1, "video/webm" for VP9). */
     val videoMimeType: String?,
-)
+    /** Live streams use HLS manifests (video-only and audio-only), not SABR. */
+    val hlsVideoUrl: String? = null,
+    val hlsAudioUrl: String? = null,
+) {
+    val isLiveHls: Boolean get() = hlsVideoUrl != null
+}
 
 /** Finds stream URLs (and SABR bootstraps) through the same extractor the Android app uses. */
 object StreamResolver {
@@ -139,13 +144,17 @@ object StreamResolver {
     suspend fun openVideo(videoId: String, maxHeight: Int? = null): VideoStreams {
         val resolved = resolveVideo(videoId, maxHeight)
         val httpClient = YouTube.extractionTransport().httpClient
+        // Live broadcasts resolve to HLS manifests (m3u8) instead of SABR bootstraps.
+        val isHls = resolved.mimeType == "application/x-mpegURL" || resolved.videoUrl?.contains("m3u8") == true
         return VideoStreams(
-            video = resolved.videoBootstrap?.let { SabrVideoStream(httpClient, it) },
-            audio = resolved.audioBootstrap?.let { SabrAudioStream(httpClient, it) },
+            video = if (isHls) null else resolved.videoBootstrap?.let { SabrVideoStream(httpClient, it) },
+            audio = if (isHls) null else resolved.audioBootstrap?.let { SabrAudioStream(httpClient, it) },
             height = resolved.selectedHeight,
             availableHeights = resolved.availableHeights,
             durationMs = resolved.durationMs,
             videoMimeType = resolved.videoMimeType,
+            hlsVideoUrl = if (isHls) resolved.videoUrl else null,
+            hlsAudioUrl = if (isHls) resolved.audioUrl else null,
         )
     }
 
