@@ -5,16 +5,10 @@
 
 package com.lokotube.desktop.playback
 
-import com.metrolist.innertubex.sabr.SabrVideoStream
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
 import java.awt.image.BufferedImage
-import java.io.PipedInputStream
-import java.io.PipedOutputStream
+import java.io.File
 
 /**
  * Decodes a single video track to frames. Isolated behind an interface so the FFmpeg/JavaCV backend
@@ -28,7 +22,7 @@ interface VideoRenderer {
     /** Blocks; the next decoded frame (timestamp in ms), or null at end-of-stream. */
     fun nextFrame(): Frame?
 
-    /** Best-effort jump. FFmpeg over a pipe can't seek; implementations may restart the stream. */
+    /** Jump to a position. The backing source is seekable, so this is a real seek. */
     fun seek(ms: Long)
 
     fun close()
@@ -37,73 +31,35 @@ interface VideoRenderer {
 }
 
 /**
- * Streams a [SabrVideoStream] through a pipe into FFmpeg and hands decoded frames out one at a time.
- * The SABR byte stream is a self-contained WebM/MP4 container (init segment first), so FFmpeg parses
- * it as it arrives — no full download, no manual container assembly.
+ * Decodes a fully-buffered SABR video from a temp file. Streaming WebM through a pipe breaks
+ * FFmpeg (`avformat_find_stream_info` reads the whole stream because the seekhead sits at the end),
+ * so the player downloads the stream to a seekable file first — start() is instant, duration/position
+ * are correct, and seek works.
  */
-class JavaCvVideoRenderer(
-    stream: SabrVideoStream,
-    scope: CoroutineScope,
-) : VideoRenderer {
-    private val pipeIn: PipedInputStream
-    private val pipeOut = PipedOutputStream()
-    private val producer: Job
+class JavaCvVideoRenderer(private val file: File) : VideoRenderer {
     private val converter = Java2DFrameConverter()
-    private var grabber: FFmpegFrameGrabber? = null
+    private val grabber = FFmpegFrameGrabber(file).also { it.start() }
 
-    override var width = 0
-        private set
-    override var height = 0
-        private set
-    override var durationMs = 0L
-        private set
-
-    init {
-        pipeIn = PipedInputStream(pipeOut, PIPE_BUFFER_BYTES)
-        producer =
-            scope.launch(Dispatchers.IO) {
-                try {
-                    stream.chunks().collect { chunk -> pipeOut.write(chunk.data) }
-                } finally {
-                    runCatching { pipeOut.close() }
-                }
-            }
-        val grabber =
-            FFmpegFrameGrabber(pipeIn).also {
-                it.format = "webm"
-                // A pipe can't seek, so cap stream-info analysis: the init segment already carries
-                // the resolution, and waiting the default 5s for a near-real-time SABR feed would
-                // block the player for seconds before the first frame.
-                it.setOption("analyzeduration", "500000")
-                it.setOption("probesize", "1000000")
-            }
-        grabber.start()
-        this.grabber = grabber
-        width = grabber.imageWidth
-        height = grabber.imageHeight
-        durationMs = grabber.lengthInTime / US_PER_MS
-    }
+    override val width = grabber.imageWidth
+    override val height = grabber.imageHeight
+    override val durationMs = grabber.lengthInTime / US_PER_MS
 
     override fun nextFrame(): VideoRenderer.Frame? {
-        val grabber = grabber ?: return null
         val frame = grabber.grab() ?: return null
         val image = converter.convert(frame) ?: return null
         return VideoRenderer.Frame(image, grabber.timestamp / US_PER_MS)
     }
 
     override fun seek(ms: Long) {
-        // A pipe is not seekable; the player re-opens the renderer for a real seek.
+        runCatching { grabber.setTimestamp(ms * US_PER_MS) }
     }
 
     override fun close() {
-        runCatching { producer.cancel() }
-        runCatching { grabber?.close() }
-        runCatching { pipeIn.close() }
-        grabber = null
+        runCatching { grabber.close() }
+        runCatching { file.delete() }
     }
 
     private companion object {
-        const val PIPE_BUFFER_BYTES = 1 shl 20
         const val US_PER_MS = 1000L
     }
 }

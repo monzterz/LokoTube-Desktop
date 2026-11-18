@@ -6,11 +6,11 @@
 package com.lokotube.desktop.playback
 
 import com.lokotube.desktop.data.Settings
-import com.metrolist.innertubex.sabr.SabrAudioStream
-import com.metrolist.innertubex.sabr.SabrVideoStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,8 +21,7 @@ import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.FrameGrabber
 import java.awt.image.BufferedImage
-import java.io.PipedInputStream
-import java.io.PipedOutputStream
+import java.io.File
 import java.nio.ShortBuffer
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
@@ -43,9 +42,9 @@ data class VideoState(
 )
 
 /**
- * Plays a YouTube video (audio + video) from its SABR streams. Audio drives the clock and is decoded
- * by FFmpeg to the sound device; video is decoded by a [VideoRenderer] and pushed to [frame] in step
- * with the audio. The renderer backend is swappable (JavaCV now, mpv later).
+ * Plays a YouTube video (audio + video) from its SABR streams. The SABR byte streams are buffered to
+ * seekable temp files first (streaming WebM through a pipe breaks FFmpeg), then audio is decoded to
+ * the sound device (clock master) and video is decoded by a [VideoRenderer] in step with it.
  */
 class VideoPlayer(private val scope: CoroutineScope) {
     private val mutableState = MutableStateFlow(VideoState(volume = Settings.volume.value))
@@ -78,7 +77,9 @@ class VideoPlayer(private val scope: CoroutineScope) {
 
     fun seek(positionMs: Long) {
         mutablePosition.value = positionMs
-        session?.seekTo = positionMs
+        val s = session ?: return
+        s.audioSeekTo = positionMs
+        s.videoSeekTo = positionMs
     }
 
     fun seekBy(deltaMs: Long) {
@@ -126,27 +127,58 @@ class VideoPlayer(private val scope: CoroutineScope) {
                         return@launch
                     }
                 if (!isActive) return@launch
-                session = Session(streams).also { it.start() }
+
+                // Buffer both SABR streams to seekable temp files in parallel.
+                val videoFile = streams.video?.let { File.createTempFile("lokotube-v", ".webm") }
+                val audioFile = streams.audio?.let { File.createTempFile("lokotube-a", ".m4a") }
+                try {
+                    coroutineScope {
+                        streams.video?.let { s -> videoFile?.let { f -> launch { download(s.bytes(), f) } } }
+                        streams.audio?.let { s -> audioFile?.let { f -> launch { download(s.bytes(), f) } } }
+                    }
+                } catch (error: Exception) {
+                    runCatching { videoFile?.delete() }
+                    runCatching { audioFile?.delete() }
+                    if (isActive) mutableState.update { it.copy(loading = false, playing = false, error = "This video can't be played right now") }
+                    return@launch
+                }
+                if (!isActive) {
+                    runCatching { videoFile?.delete() }
+                    runCatching { audioFile?.delete() }
+                    return@launch
+                }
+                session = Session(videoFile, audioFile, streams).also { it.start() }
             }
     }
 
-    private inner class Session(private val streams: VideoStreams) : Thread("lokotube-video") {
+    private suspend fun download(flow: Flow<ByteArray>, file: File) {
+        file.outputStream().use { out -> flow.collect { out.write(it) } }
+    }
+
+    private inner class Session(
+        private val videoFile: File?,
+        private val audioFile: File?,
+        private val streams: VideoStreams,
+    ) : Thread("lokotube-video") {
         @Volatile var cancelled = false
 
-        @Volatile var seekTo = NO_SEEK
+        @Volatile var audioSeekTo = NO_SEEK
+
+        @Volatile var videoSeekTo = NO_SEEK
 
         /** Written by the audio loop; the master clock the video follows. */
         @Volatile var audioClockMs = 0L
 
         override fun run() {
-            val audio = streams.audio
-            val audioThread = if (audio != null) thread(name = "lokotube-video-audio", isDaemon = true) { pumpAudio(audio) } else null
-            val ticker = if (audio == null) thread(name = "lokotube-video-clock", isDaemon = true) { pumpWallClock() } else null
+            val audioThread = if (audioFile != null) thread(name = "lokotube-video-audio", isDaemon = true) { pumpAudio(audioFile) } else null
+            val ticker = if (audioFile == null) thread(name = "lokotube-video-clock", isDaemon = true) { pumpWallClock() } else null
             try {
-                pumpVideo(streams.video)
+                pumpVideo(videoFile)
             } finally {
                 audioThread?.join(1_000)
                 ticker?.join(1_000)
+                runCatching { videoFile?.delete() }
+                runCatching { audioFile?.delete() }
                 if (!cancelled) mutableState.update { it.copy(playing = false) }
             }
         }
@@ -159,27 +191,14 @@ class VideoPlayer(private val scope: CoroutineScope) {
             }
         }
 
-        private fun pumpAudio(audio: SabrAudioStream) {
-            val pipeOut = PipedOutputStream()
-            val pipeIn = PipedInputStream(pipeOut, PIPE_BUFFER_BYTES)
-            val producer =
-                scope.launch(Dispatchers.IO) {
-                    try {
-                        audio.chunks().collect { chunk -> pipeOut.write(chunk.data) }
-                    } finally {
-                        runCatching { pipeOut.close() }
-                    }
-                }
+        private fun pumpAudio(file: File) {
             var bytes = ByteArray(BUFFER_BYTES)
             try {
                 avutil.av_log_set_level(avutil.AV_LOG_QUIET)
-                FFmpegFrameGrabber(pipeIn).use { grabber ->
+                FFmpegFrameGrabber(file).use { grabber ->
                     grabber.sampleMode = FrameGrabber.SampleMode.SHORT
                     grabber.audioChannels = CHANNELS
                     grabber.sampleRate = SAMPLE_RATE
-                    // Same as the video renderer: a pipe can't seek, so cap stream-info analysis.
-                    grabber.setOption("analyzeduration", "500000")
-                    grabber.setOption("probesize", "1000000")
                     grabber.start()
                     val format = AudioFormat(SAMPLE_RATE.toFloat(), BITS, CHANNELS, true, false)
                     // No audio device (headless/CI): decode-only, the clock still advances so video stays in sync.
@@ -191,11 +210,11 @@ class VideoPlayer(private val scope: CoroutineScope) {
                         }
                     var published = 0L
                     while (!cancelled) {
-                        val target = seekTo
+                        val target = audioSeekTo
                         if (target != NO_SEEK) {
-                            seekTo = NO_SEEK
+                            audioSeekTo = NO_SEEK
                             line?.flush()
-                            moveTo(grabber, target)
+                            grabber.setTimestamp(target * US_PER_MS)
                         }
                         val state = mutableState.value
                         if (!state.playing) {
@@ -233,17 +252,20 @@ class VideoPlayer(private val scope: CoroutineScope) {
                 }
             } catch (error: Exception) {
                 if (!cancelled) mutableState.update { it.copy(playing = false, error = "Audio can't be played right now") }
-            } finally {
-                producer.cancel()
             }
         }
 
-        private fun pumpVideo(video: SabrVideoStream?) {
-            if (video == null) return
-            val renderer = JavaCvVideoRenderer(video, scope)
+        private fun pumpVideo(file: File?) {
+            if (file == null) return
+            val renderer = JavaCvVideoRenderer(file)
             try {
                 mutableState.update { it.copy(durationMs = renderer.durationMs, loading = false, height = streams.height, availableHeights = streams.availableHeights) }
                 while (!cancelled) {
+                    val target = videoSeekTo
+                    if (target != NO_SEEK) {
+                        videoSeekTo = NO_SEEK
+                        renderer.seek(target)
+                    }
                     val frame = renderer.nextFrame() ?: break
                     // Audio-clock-master sync: wait until the audio has caught up to this frame.
                     while (!cancelled && frame.timestampMs - audioClockMs > SYNC_LEAD_MS) sleep(SYNC_POLL_MS)
@@ -256,11 +278,6 @@ class VideoPlayer(private val scope: CoroutineScope) {
             } finally {
                 renderer.close()
             }
-        }
-
-        private fun moveTo(grabber: FFmpegFrameGrabber, targetMs: Long) {
-            // A pipe can't seek; a real seek re-opens the session. Best effort for now.
-            grabber.setTimestamp(targetMs * US_PER_MS)
         }
 
         private fun writeSample(bytes: ByteArray, index: Int, value: Double) {
@@ -286,6 +303,5 @@ class VideoPlayer(private val scope: CoroutineScope) {
         const val SYNC_LEAD_MS = 40L
         const val SYNC_POLL_MS = 5L
         const val MAX_LAG_MS = 500L
-        const val PIPE_BUFFER_BYTES = 1 shl 20
     }
 }
