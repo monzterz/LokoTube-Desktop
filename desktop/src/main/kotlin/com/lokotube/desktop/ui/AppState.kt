@@ -76,6 +76,7 @@ sealed interface Route {
     data class ShelfAll(val title: String, val items: List<YTItem>) : Route
     data class ArtistItems(val title: String, val endpoint: BrowseEndpoint) : Route
     data class Video(val id: String) : Route
+    data object VideoHome : Route
     data object Shorts : Route
 }
 

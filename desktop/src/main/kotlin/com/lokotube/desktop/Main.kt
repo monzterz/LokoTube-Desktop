@@ -121,6 +121,7 @@ import com.lokotube.desktop.ui.SearchPanel
 import com.lokotube.desktop.ui.SearchResultsScreen
 import com.lokotube.desktop.ui.SettingsScreen
 import com.lokotube.desktop.ui.ShortsScreen
+import com.lokotube.desktop.ui.VideoHomeScreen
 import com.lokotube.desktop.ui.VideoScreen
 import com.lokotube.desktop.ui.Sidebar
 import com.lokotube.desktop.ui.Size
@@ -621,6 +622,7 @@ private fun CenterPane(app: AppState, state: PlayerState, modifier: Modifier) {
                     is Route.ShelfAll -> ShelfAllScreen(route, app)
                     is Route.ArtistItems -> ArtistItemsScreen(route, app)
                     is Route.Video -> VideoScreen(route.id, app)
+                    Route.VideoHome -> VideoHomeScreen(app)
                     Route.Shorts -> ShortsScreen(app)
                 }
             }
