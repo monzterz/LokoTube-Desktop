@@ -51,7 +51,7 @@ fun VideoScreen(videoId: String, app: AppState) {
     val frame by player.frame.collectAsState()
 
     LaunchedEffect(videoId) {
-        if (state.videoId != videoId) player.play(videoId)
+        if (state.videoId != videoId) player.play(videoId, height = DEFAULT_HEIGHT)
     }
     DisposableEffect(videoId) {
         onDispose { player.stop() }
@@ -138,3 +138,6 @@ private fun VideoControls(player: com.lokotube.desktop.playback.VideoPlayer, sta
         }
     }
 }
+
+/** Software VP9 decode is heavy; start at 720p and let the user raise it in the quality menu. */
+private const val DEFAULT_HEIGHT = 720

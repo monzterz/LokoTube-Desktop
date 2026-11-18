@@ -177,6 +177,9 @@ class VideoPlayer(private val scope: CoroutineScope) {
                     grabber.sampleMode = FrameGrabber.SampleMode.SHORT
                     grabber.audioChannels = CHANNELS
                     grabber.sampleRate = SAMPLE_RATE
+                    // Same as the video renderer: a pipe can't seek, so cap stream-info analysis.
+                    grabber.setOption("analyzeduration", "500000")
+                    grabber.setOption("probesize", "1000000")
                     grabber.start()
                     val format = AudioFormat(SAMPLE_RATE.toFloat(), BITS, CHANNELS, true, false)
                     // No audio device (headless/CI): decode-only, the clock still advances so video stays in sync.
