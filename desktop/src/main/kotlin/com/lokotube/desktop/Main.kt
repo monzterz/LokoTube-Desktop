@@ -558,8 +558,10 @@ private fun App(app: AppState) {
                 }
             }
         }
-        TitleBar(app, search, { search = it }, { if (it) searchOpen = true }, { searchOpen = false }, focus, hazeState, Modifier.align(Alignment.TopCenter))
-        PlayerBar(app, state, hazeState, Modifier.align(Alignment.BottomCenter))
+        if (!app.isVideoSection) {
+            TitleBar(app, search, { search = it }, { if (it) searchOpen = true }, { searchOpen = false }, focus, hazeState, Modifier.align(Alignment.TopCenter))
+            PlayerBar(app, state, hazeState, Modifier.align(Alignment.BottomCenter))
+        }
         if (searchOpen) {
             SearchPanel(app, search.text, onClose = {
                 searchOpen = false
@@ -597,7 +599,7 @@ private fun App(app: AppState) {
 private fun CenterPane(app: AppState, state: PlayerState, modifier: Modifier) {
     val online by Connection.online.collectAsState()
     Box(modifier.clip(ErShape.Medium).appBackdrop()) {
-        Column(Modifier.fillMaxSize().padding(top = Size.TitleBar)) {
+        Column(Modifier.fillMaxSize().then(if (app.isVideoSection) Modifier else Modifier.padding(top = Size.TitleBar))) {
             AnimatedVisibility(!online) { OfflineStrip(app) }
             AnimatedContent(
                 targetState = app.route,

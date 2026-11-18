@@ -101,6 +101,10 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
     val canGoBack: Boolean get() = historyIndex > 0
     val canGoForward: Boolean get() = historyIndex < history.lastIndex
 
+    /** True in the standalone video section (player, home, or Shorts): the music chrome is hidden. */
+    val isVideoSection: Boolean
+        get() = route is Route.Video || route == Route.VideoHome || route == Route.Shorts
+
     var toast by mutableStateOf<String?>(null)
         private set
     private var toastJob: Job? = null

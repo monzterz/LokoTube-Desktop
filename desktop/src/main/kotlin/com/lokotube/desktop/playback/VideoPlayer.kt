@@ -29,6 +29,7 @@ import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.SourceDataLine
 import kotlin.concurrent.thread
+import kotlin.math.min
 
 data class VideoState(
     val videoId: String? = null,
@@ -44,9 +45,11 @@ data class VideoState(
 )
 
 /**
- * Plays a YouTube video (audio + video) from its SABR streams. Video is streamed through a pipe into
- * FFmpeg (no full download); audio is buffered to a seekable temp file (it is small and its metadata
- * sits at the end, so it needs the whole file) and drives the clock.
+ * Plays a YouTube video (audio + video) from its SABR streams. The video is streamed through a pipe
+ * into FFmpeg (no full download) and throttled to a wall clock, so it starts as soon as frames are
+ * ready — it never freezes waiting for the audio. The audio is buffered to a seekable temp file (it
+ * is small and its metadata sits at the end, so it needs the whole file) and seeks to the video's
+ * current position once it is ready, keeping the two in sync.
  */
 class VideoPlayer(private val scope: CoroutineScope) {
     private val mutableState = MutableStateFlow(VideoState(volume = Settings.volume.value))
@@ -138,26 +141,16 @@ class VideoPlayer(private val scope: CoroutineScope) {
     ) : Thread("lokotube-video") {
         @Volatile var cancelled = false
 
-        /** Written by the audio loop; the master clock the video follows. */
-        @Volatile var audioClockMs = 0L
+        /** Wall-clock reference the video throttles to; the audio seeks to catch up to it. */
+        @Volatile var clockStartMs = 0L
 
         override fun run() {
             val audioThread = if (audio != null) thread(name = "lokotube-video-audio", isDaemon = true) { pumpAudio(audio) } else null
-            val ticker = if (audio == null) thread(name = "lokotube-video-clock", isDaemon = true) { pumpWallClock() } else null
             try {
                 pumpVideo(video)
             } finally {
                 audioThread?.join(1_000)
-                ticker?.join(1_000)
                 if (!cancelled) mutableState.update { it.copy(playing = false) }
-            }
-        }
-
-        private fun pumpWallClock() {
-            val start = System.currentTimeMillis()
-            while (!cancelled) {
-                if (mutableState.value.playing) audioClockMs = System.currentTimeMillis() - start
-                Thread.sleep(CLOCK_TICK_MS)
             }
         }
 
@@ -173,15 +166,19 @@ class VideoPlayer(private val scope: CoroutineScope) {
                     grabber.audioChannels = CHANNELS
                     grabber.sampleRate = SAMPLE_RATE
                     grabber.start()
+                    // The video has been playing on the wall clock; start the audio where it is now.
+                    val elapsed = System.currentTimeMillis() - clockStartMs
+                    if (clockStartMs > 0 && elapsed > AUDIO_SEEK_THRESHOLD_MS) {
+                        runCatching { grabber.timestamp = elapsed * US_PER_MS }
+                    }
                     val format = AudioFormat(SAMPLE_RATE.toFloat(), BITS, CHANNELS, true, false)
-                    // No audio device (headless/CI): decode-only, the clock still advances so video stays in sync.
+                    // No audio device (headless/CI): decode-only, the video still plays on the wall clock.
                     val line =
                         try {
                             AudioSystem.getSourceDataLine(format).also { it.open(format, BUFFER_BYTES); it.start() }
                         } catch (_: Exception) {
                             null
                         }
-                    var published = 0L
                     while (!cancelled) {
                         val state = mutableState.value
                         if (!state.playing) {
@@ -206,13 +203,6 @@ class VideoPlayer(private val scope: CoroutineScope) {
                             }
                             line.write(bytes, 0, count * 2)
                         }
-                        val now = System.currentTimeMillis()
-                        if (now - published >= POSITION_PUBLISH_MS) {
-                            published = now
-                            val buffered = line?.let { (it.bufferSize - it.available()) * MS_PER_SECOND / BYTES_PER_SECOND } ?: 0L
-                            audioClockMs = (grabber.timestamp / US_PER_MS - buffered).coerceAtLeast(0)
-                            mutablePosition.value = audioClockMs
-                        }
                     }
                     if (!cancelled) line?.drain()
                     line?.close()
@@ -232,13 +222,28 @@ class VideoPlayer(private val scope: CoroutineScope) {
             val renderer = JavaCvVideoRenderer(stream, scope, streams.durationMs, streams.videoMimeType)
             try {
                 mutableState.update { it.copy(durationMs = renderer.durationMs, loading = false, height = streams.height, availableHeights = streams.availableHeights) }
+                clockStartMs = System.currentTimeMillis()
                 while (!cancelled) {
+                    // Pause: freeze the frame and shift the clock on resume so nothing drifts.
+                    if (!mutableState.value.playing) {
+                        val pausedAt = System.currentTimeMillis()
+                        while (!cancelled && !mutableState.value.playing) sleep(PAUSE_POLL_MS)
+                        clockStartMs += System.currentTimeMillis() - pausedAt
+                        if (cancelled) break
+                    }
                     val frame = renderer.nextFrame() ?: break
-                    // Audio-clock-master sync: wait until the audio has caught up to this frame.
-                    while (!cancelled && frame.timestampMs - audioClockMs > SYNC_LEAD_MS) sleep(SYNC_POLL_MS)
+                    // Throttle to the wall clock: play in real time, independent of audio readiness.
+                    while (!cancelled && mutableState.value.playing) {
+                        val elapsed = System.currentTimeMillis() - clockStartMs
+                        val ahead = frame.timestampMs - elapsed
+                        if (ahead <= 0) break
+                        sleep(min(SYNC_POLL_MS, ahead))
+                    }
                     if (cancelled) break
-                    if (audioClockMs - frame.timestampMs > MAX_LAG_MS) continue // frame too old, drop
-                    mutableFrame.value = frame.image
+                    if (mutableState.value.playing) {
+                        mutableFrame.value = frame.image
+                        mutablePosition.value = frame.timestampMs
+                    }
                 }
             } catch (error: Exception) {
                 if (!cancelled) mutableState.update { it.copy(playing = false, error = "Video can't be played right now") }
@@ -262,12 +267,8 @@ class VideoPlayer(private val scope: CoroutineScope) {
         const val BYTES_PER_SECOND = SAMPLE_RATE * CHANNELS * BITS / BITS_PER_BYTE
         const val BUFFER_BYTES = BYTES_PER_SECOND / 5
         const val US_PER_MS = 1000L
-        const val MS_PER_SECOND = 1000L
         const val PAUSE_POLL_MS = 30L
-        const val POSITION_PUBLISH_MS = 40L
-        const val CLOCK_TICK_MS = 40L
-        const val SYNC_LEAD_MS = 40L
         const val SYNC_POLL_MS = 5L
-        const val MAX_LAG_MS = 500L
+        const val AUDIO_SEEK_THRESHOLD_MS = 500L
     }
 }
