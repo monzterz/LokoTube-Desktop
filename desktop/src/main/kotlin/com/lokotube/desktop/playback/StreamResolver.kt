@@ -21,6 +21,9 @@ import com.metrolist.innertubex.extraction.TokenProviderCapabilities
 import com.metrolist.innertubex.extraction.YtConfigParser
 import com.metrolist.innertubex.extraction.YtConfigParserImpl
 import com.metrolist.innertubex.extraction.generateClientPlaybackNonce
+import com.metrolist.innertubex.sabr.SabrAudioStream
+import com.metrolist.innertubex.sabr.SabrBootstrap
+import com.metrolist.innertubex.sabr.SabrVideoStream
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
@@ -36,7 +39,44 @@ data class ResolvedStream(
     val loudnessDb: Double?,
 )
 
-/** Finds the audio URL of a song, through the same extractor the Android app uses. */
+/**
+ * A playable video: the audio and video sources plus the quality ladder. YouTube's primary path is
+ * SABR (segmented, adaptive) — [videoBootstrap]/[audioBootstrap] are the live stream sources; the
+ * flat URL fields are the progressive fallback and metadata.
+ */
+data class ResolvedVideoStream(
+    val audioUrl: String,
+    val videoUrl: String?,
+    val videoWidth: Int?,
+    val videoHeight: Int?,
+    val availableHeights: List<Int>,
+    val videoMimeType: String?,
+    val videoCodecs: String?,
+    val videoItag: Int?,
+    val videoBitrate: Int?,
+    val videoContentLengthBytes: Long?,
+    val headers: Map<String, String>,
+    val client: String,
+    val mimeType: String?,
+    val durationMs: Long,
+    val videoBootstrap: SabrBootstrap?,
+    val audioBootstrap: SabrBootstrap?,
+    val maxVideoHeight: Int?,
+) {
+    val usesSabr: Boolean get() = videoBootstrap != null
+    val selectedHeight: Int? get() = videoBootstrap?.selectedVideoHeight ?: videoHeight
+}
+
+/** Live, open SABR streams for a video, ready to be consumed by a renderer. */
+data class VideoStreams(
+    val video: SabrVideoStream?,
+    val audio: SabrAudioStream?,
+    val height: Int?,
+    val availableHeights: List<Int>,
+    val durationMs: Long,
+)
+
+/** Finds stream URLs (and SABR bootstraps) through the same extractor the Android app uses. */
 object StreamResolver {
     private data class Bundle(val generation: Long, val cipher: YouTubeCipherService, val extractor: InnerTubeExtractor)
 
@@ -58,18 +98,64 @@ object StreamResolver {
 
     suspend fun resolve(videoId: String): ResolvedStream {
         val hints = ContentHints().withStreamCapabilities(allowHls = false, allowSabr = false, allowBoundedRange = true)
-        val stream =
-            requireNotNull(
-                bundle().extractor.extract(
-                    videoId = videoId,
-                    hints = hints,
-                    excludedClients = emptySet(),
-                    audioQuality = if (Settings.highQuality.value) AudioQuality.HIGH else AudioQuality.LOW,
-                    clientPlaybackNonce = generateClientPlaybackNonce(),
-                ),
-            ) { "No playable stream" }
+        val stream = extract(videoId, hints)
         return ResolvedStream(stream.audioUrl, stream.headers, stream.clientName, stream.mimeType, stream.loudnessDb)
     }
+
+    /**
+     * Finds the audio AND video of a video. [maxHeight] caps the resolution YouTube may select
+     * (e.g. 1080); the default (null) picks the highest tier, which is far too heavy to decode in
+     * software.
+     */
+    suspend fun resolveVideo(videoId: String, maxHeight: Int? = null): ResolvedVideoStream {
+        val hints =
+            ContentHints().copy(wantVideo = true, sabrFirst = true, maxVideoHeight = maxHeight)
+                .withStreamCapabilities(allowHls = true, allowSabr = true, allowBoundedRange = true)
+        val stream = extract(videoId, hints)
+        return ResolvedVideoStream(
+            audioUrl = stream.audioUrl,
+            videoUrl = stream.videoUrl,
+            videoWidth = stream.videoWidth,
+            videoHeight = stream.videoHeight,
+            availableHeights = stream.availableVideoHeights.orEmpty(),
+            videoMimeType = stream.videoMimeType,
+            videoCodecs = stream.videoCodecs,
+            videoItag = stream.videoItag,
+            videoBitrate = stream.videoBitrate,
+            videoContentLengthBytes = stream.videoContentLengthBytes,
+            headers = stream.headers,
+            client = stream.clientName,
+            mimeType = stream.mimeType,
+            durationMs = stream.sabrVideoBootstrap?.durationMs ?: 0,
+            videoBootstrap = stream.sabrVideoBootstrap,
+            audioBootstrap = stream.sabrBootstrap,
+            maxVideoHeight = maxHeight,
+        )
+    }
+
+    /** Resolves a video and opens its SABR video+audio streams in one step. */
+    suspend fun openVideo(videoId: String, maxHeight: Int? = null): VideoStreams {
+        val resolved = resolveVideo(videoId, maxHeight)
+        val httpClient = YouTube.extractionTransport().httpClient
+        return VideoStreams(
+            video = resolved.videoBootstrap?.let { SabrVideoStream(httpClient, it) },
+            audio = resolved.audioBootstrap?.let { SabrAudioStream(httpClient, it) },
+            height = resolved.selectedHeight,
+            availableHeights = resolved.availableHeights,
+            durationMs = resolved.durationMs,
+        )
+    }
+
+    private suspend fun extract(videoId: String, hints: ContentHints) =
+        requireNotNull(
+            bundle().extractor.extract(
+                videoId = videoId,
+                hints = hints,
+                excludedClients = emptySet(),
+                audioQuality = if (Settings.highQuality.value) AudioQuality.HIGH else AudioQuality.LOW,
+                clientPlaybackNonce = generateClientPlaybackNonce(),
+            ),
+        ) { "No playable stream" }
 
     private suspend fun bundle(): Bundle {
         val transport = YouTube.extractionTransport()
