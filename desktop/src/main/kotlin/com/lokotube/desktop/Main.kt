@@ -123,6 +123,7 @@ import com.lokotube.desktop.ui.SettingsScreen
 import com.lokotube.desktop.ui.ShortsScreen
 import com.lokotube.desktop.ui.VideoHomeScreen
 import com.lokotube.desktop.ui.VideoScreen
+import com.lokotube.desktop.ui.VideoSearchScreen
 import com.lokotube.desktop.ui.Sidebar
 import com.lokotube.desktop.ui.Size
 import com.lokotube.desktop.ui.LokotubeTheme
@@ -558,8 +559,10 @@ private fun App(app: AppState) {
                 }
             }
         }
-        if (!app.isVideoSection) {
+        if (app.route !is Route.Video) {
             TitleBar(app, search, { search = it }, { if (it) searchOpen = true }, { searchOpen = false }, focus, hazeState, Modifier.align(Alignment.TopCenter))
+        }
+        if (!app.isVideoSection) {
             PlayerBar(app, state, hazeState, Modifier.align(Alignment.BottomCenter))
         }
         if (searchOpen) {
@@ -599,7 +602,7 @@ private fun App(app: AppState) {
 private fun CenterPane(app: AppState, state: PlayerState, modifier: Modifier) {
     val online by Connection.online.collectAsState()
     Box(modifier.clip(ErShape.Medium).appBackdrop()) {
-        Column(Modifier.fillMaxSize().then(if (app.isVideoSection) Modifier else Modifier.padding(top = Size.TitleBar))) {
+        Column(Modifier.fillMaxSize().then(if (app.route is Route.Video) Modifier else Modifier.padding(top = Size.TitleBar))) {
             AnimatedVisibility(!online) { OfflineStrip(app) }
             AnimatedContent(
                 targetState = app.route,
@@ -625,6 +628,7 @@ private fun CenterPane(app: AppState, state: PlayerState, modifier: Modifier) {
                     is Route.ArtistItems -> ArtistItemsScreen(route, app)
                     is Route.Video -> VideoScreen(route.id, app)
                     Route.VideoHome -> VideoHomeScreen(app)
+                    is Route.VideoSearch -> VideoSearchScreen(route.query, app)
                     Route.Shorts -> ShortsScreen(app)
                 }
             }

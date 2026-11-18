@@ -77,6 +77,7 @@ sealed interface Route {
     data class ArtistItems(val title: String, val endpoint: BrowseEndpoint) : Route
     data class Video(val id: String) : Route
     data object VideoHome : Route
+    data class VideoSearch(val query: String) : Route
     data object Shorts : Route
 }
 
@@ -101,9 +102,9 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
     val canGoBack: Boolean get() = historyIndex > 0
     val canGoForward: Boolean get() = historyIndex < history.lastIndex
 
-    /** True in the standalone video section (player, home, or Shorts): the music chrome is hidden. */
+    /** True in the standalone video section (player, home, search, or Shorts): the music chrome is hidden. */
     val isVideoSection: Boolean
-        get() = route is Route.Video || route == Route.VideoHome || route == Route.Shorts
+        get() = route is Route.Video || route is Route.VideoSearch || route == Route.VideoHome || route == Route.Shorts
 
     var toast by mutableStateOf<String?>(null)
         private set
@@ -205,7 +206,7 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
         val text = query.trim()
         if (text.isNotEmpty()) {
             com.lokotube.desktop.data.RecentSearches.add(text)
-            go(Route.Search(text))
+            go(if (isVideoSection) Route.VideoSearch(text) else Route.Search(text))
         }
     }
 

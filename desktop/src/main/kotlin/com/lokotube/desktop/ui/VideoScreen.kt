@@ -8,6 +8,7 @@ package com.lokotube.desktop.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -103,6 +104,7 @@ private fun VideoControls(player: VideoPlayer, state: VideoState, position: Long
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.M),
         modifier =
             modifier
                 .fillMaxWidth()
@@ -123,8 +125,6 @@ private fun VideoControls(player: VideoPlayer, state: VideoState, position: Long
                 )
             }
         }
-        Spacer(Modifier.width(Spacing.M))
-
         val max = state.durationMs.coerceAtLeast(1).toFloat()
         val shown = dragPosition ?: position.toFloat()
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
@@ -143,8 +143,6 @@ private fun VideoControls(player: VideoPlayer, state: VideoState, position: Long
             Spacer(Modifier.width(Spacing.S))
             Text(formatTime(state.durationMs), style = MaterialTheme.typography.bodySmall, color = Color.White)
         }
-        Spacer(Modifier.width(Spacing.M))
-
         SymbolButton(
             if (state.muted) "volume_off" else "volume_up",
             if (state.muted) "Unmute" else "Mute",

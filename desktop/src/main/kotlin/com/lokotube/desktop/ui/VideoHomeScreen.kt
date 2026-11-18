@@ -23,22 +23,15 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.lokotube.innertube.YouTube
@@ -47,56 +40,43 @@ import com.lokotube.innertube.models.VideoItem
 /** A dedicated section for regular YouTube videos, separate from the music Home. */
 @Composable
 fun VideoHomeScreen(app: AppState) {
-    var query by remember { mutableStateOf("") }
-    var submitted by remember { mutableStateOf("") }
-    val results by produceState<List<VideoItem>?>(null, submitted) {
-        value = if (submitted.isBlank()) null else YouTube.searchVideos(submitted).getOrNull()
-    }
     val home by produceState<List<VideoItem>?>(null) {
         value = YouTube.homeVideos().getOrNull()
     }
+    val feed = home
+    when {
+        feed == null -> Message("Loading…")
+        feed.isEmpty() -> Message("No feed yet — sign in for your home feed, or search above")
+        else ->
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 260.dp),
+                contentPadding = PaddingValues(start = Spacing.L, top = Spacing.M, end = Spacing.L, bottom = Spacing.XXL),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+                verticalArrangement = Arrangement.spacedBy(Spacing.M),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                items(feed, key = { it.id }, contentType = { "video" }) { VideoCard(it, app) }
+            }
+    }
+}
 
-    Column(Modifier.fillMaxSize().padding(start = Spacing.L, top = Spacing.M, end = Spacing.L)) {
-        Text("Video", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = Spacing.M))
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            placeholder = { Text("Search YouTube videos") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { submitted = query.trim() }),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Spacer(Modifier.height(Spacing.M))
-        val found = results
-        val feed = home
-        if (submitted.isNotBlank()) {
-            // Search results stay a list, as on YouTube's search page.
-            when {
-                found == null -> Message("Searching…")
-                found.isEmpty() -> Message("Nothing found")
-                else ->
-                    ScrollingColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(end = Spacing.S, bottom = Spacing.XXL)) {
-                        items(found, key = { it.id }, contentType = { "video" }) { VideoRow(it, app) }
-                    }
+/** Results for a video search from the top bar, as a list like YouTube's search page. */
+@Composable
+fun VideoSearchScreen(query: String, app: AppState) {
+    val results by produceState<List<VideoItem>?>(null, query) {
+        value = YouTube.searchVideos(query).getOrNull()
+    }
+    val found = results
+    when {
+        found == null -> Message("Searching…")
+        found.isEmpty() -> Message("Nothing found")
+        else ->
+            Column(Modifier.fillMaxSize().padding(start = Spacing.L, top = Spacing.M, end = Spacing.L)) {
+                Text("Results for “$query”", style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(bottom = Spacing.M))
+                ScrollingColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(end = Spacing.S, bottom = Spacing.XXL)) {
+                    items(found, key = { it.id }, contentType = { "video" }) { VideoRow(it, app) }
+                }
             }
-        } else {
-            // The home feed is a grid of cards, like YouTube's desktop home.
-            when {
-                feed == null -> Message("Loading…")
-                feed.isEmpty() -> Message("No feed yet — sign in for your home feed, or search above")
-                else ->
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 260.dp),
-                        contentPadding = PaddingValues(bottom = Spacing.XXL),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.M),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.M),
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        items(feed, key = { it.id }, contentType = { "video" }) { VideoCard(it, app) }
-                    }
-            }
-        }
     }
 }
 
