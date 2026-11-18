@@ -12,6 +12,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
+import timber.log.Timber
 import java.awt.image.BufferedImage
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
@@ -38,19 +39,28 @@ interface VideoRenderer {
 
 /**
  * Streams a [SabrVideoStream] through a pipe into FFmpeg and hands decoded frames out one at a time.
- * The pipe blocks on read (true streaming, no full download) and `live=1` tells the Matroska demuxer
- * the input has no trailing seekhead, which keeps `start()` to ~7s instead of reading to EOF (~18s).
+ * The pipe blocks on read (true streaming, no full download). The container is chosen from
+ * [mimeType] — YouTube serves VP9 as WebM but AVC/AV1 as fragmented MP4, so hardcoding one demuxer
+ * breaks the other. `live=1` is Matroska-only: it tells the demuxer the input has no trailing
+ * seekhead, keeping `start()` to ~7s instead of reading to EOF (~18s). MP4 puts its `moov` in the
+ * init chunk up front, so it starts fast without `live`.
  */
 class JavaCvVideoRenderer(
     stream: SabrVideoStream,
     scope: CoroutineScope,
     resolvedDurationMs: Long,
+    mimeType: String? = null,
 ) : VideoRenderer {
     private val pipeIn: PipedInputStream
     private val pipeOut = PipedOutputStream()
     private val producer: Job
     private val converter = Java2DFrameConverter()
     private val grabber: FFmpegFrameGrabber
+
+    /** Set by the producer if `chunks()` dies; surfaced so `start()` failures are debuggable. */
+    @Volatile private var producerError: Throwable? = null
+
+    private val isMp4 = mimeType?.contains("mp4", ignoreCase = true) == true
 
     override var width = 0
         private set
@@ -66,17 +76,34 @@ class JavaCvVideoRenderer(
             scope.launch(Dispatchers.IO) {
                 try {
                     stream.chunks().collect { chunk -> pipeOut.write(chunk.data) }
+                } catch (error: Throwable) {
+                    producerError = error
+                    Timber.w(error, "SABR video producer failed")
                 } finally {
                     runCatching { pipeOut.close() }
                 }
             }
         grabber =
-            FFmpegFrameGrabber(pipeIn).also {
-                it.format = "webm"
-                it.setOption("analyzeduration", "10000")
-                it.setOption("probesize", "500000")
-                it.setOption("live", "1")
-                it.start()
+            try {
+                // maximumSize=0 disables JavaCV's seek emulation (a giant in-memory mark/reset
+                // buffer). A live SABR pipe is non-seekable; reporting it as seekable makes the mov
+                // demuxer seek -> buffer the whole stream -> OOM. Non-seekable avio reads fMP4
+                // sequentially, which is exactly what we want.
+                FFmpegFrameGrabber(pipeIn, 0).also {
+                    it.format = if (isMp4) "mp4" else "webm"
+                    it.setOption("analyzeduration", "10000")
+                    it.setOption("probesize", "500000")
+                    if (!isMp4) it.setOption("live", "1")
+                    it.start()
+                }
+            } catch (error: Exception) {
+                val cause = producerError
+                producer.cancel()
+                runCatching { pipeIn.close() }
+                if (cause != null) {
+                    throw IllegalStateException("SABR video stream failed: ${cause.message}", cause)
+                }
+                throw error
             }
         width = grabber.imageWidth
         height = grabber.imageHeight

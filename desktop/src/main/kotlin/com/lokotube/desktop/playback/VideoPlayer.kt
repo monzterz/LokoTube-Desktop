@@ -229,7 +229,7 @@ class VideoPlayer(private val scope: CoroutineScope) {
                 mutableState.update { it.copy(loading = false, playing = false, error = "This video can't be played right now") }
                 return
             }
-            val renderer = JavaCvVideoRenderer(stream, scope, streams.durationMs)
+            val renderer = JavaCvVideoRenderer(stream, scope, streams.durationMs, streams.videoMimeType)
             try {
                 mutableState.update { it.copy(durationMs = renderer.durationMs, loading = false, height = streams.height, availableHeights = streams.availableHeights) }
                 while (!cancelled) {

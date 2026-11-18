@@ -74,6 +74,8 @@ data class VideoStreams(
     val height: Int?,
     val availableHeights: List<Int>,
     val durationMs: Long,
+    /** Container hint from YouTube (e.g. "video/mp4" for AVC/AV1, "video/webm" for VP9). */
+    val videoMimeType: String?,
 )
 
 /** Finds stream URLs (and SABR bootstraps) through the same extractor the Android app uses. */
@@ -112,11 +114,6 @@ object StreamResolver {
             ContentHints().copy(wantVideo = true, sabrFirst = true, maxVideoHeight = maxHeight)
                 .withStreamCapabilities(allowHls = true, allowSabr = true, allowBoundedRange = true)
         val stream = extract(videoId, hints)
-        println(
-            "[LT-DEBUG] resolveVideo($videoId, max=$maxHeight): client=${stream.clientName} videoUrl=${stream.videoUrl} " +
-                "videoBootstrap=${stream.sabrVideoBootstrap != null} audioBootstrap=${stream.sabrBootstrap != null} " +
-                "heights=${stream.availableVideoHeights} sabrStreamingUrl=${stream.sabrVideoBootstrap?.serverAbrStreamingUrl}",
-        )
         return ResolvedVideoStream(
             audioUrl = stream.audioUrl,
             videoUrl = stream.videoUrl,
@@ -148,6 +145,7 @@ object StreamResolver {
             height = resolved.selectedHeight,
             availableHeights = resolved.availableHeights,
             durationMs = resolved.durationMs,
+            videoMimeType = resolved.videoMimeType,
         )
     }
 
