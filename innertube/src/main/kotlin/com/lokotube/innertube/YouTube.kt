@@ -35,6 +35,7 @@ import com.lokotube.innertube.models.getContinuation
 import com.lokotube.innertube.models.getItems
 import com.lokotube.innertube.models.oddElements
 import com.lokotube.innertube.models.splitBySeparator
+import com.lokotube.innertube.utils.decodeHtmlEntities
 import com.lokotube.innertube.utils.parseTime
 import com.lokotube.innertube.models.response.AccountMenuResponse
 import com.lokotube.innertube.models.response.BrowseResponse
@@ -50,6 +51,7 @@ import com.lokotube.innertube.models.response.NextResponse
 import com.lokotube.innertube.models.response.toVideoItem
 import com.lokotube.innertube.models.response.PlayerResponse
 import com.lokotube.innertube.models.response.SearchResponse
+import com.lokotube.innertube.models.response.ShortsSearchResponse
 import com.lokotube.innertube.models.response.VideoSearchResponse
 import com.lokotube.innertube.pages.AlbumPage
 import com.lokotube.innertube.pages.ArtistItemsContinuationPage
@@ -101,6 +103,12 @@ object YouTube {
     /** WEB search "Videos" type filter. */
     private const val VIDEO_SEARCH_PARAMS = "EgIQAQ%3D%3D"
     private const val TRENDING_SEARCH_PARAMS = "CAMSAhAB"
+
+    /** WEB search type filter: Shorts. */
+    private const val SHORTS_SEARCH_PARAMS = "EgZzaG9ydHM%3D"
+
+    /** Seed queries merged into the Shorts feed (each search shelf holds ~30 Shorts). */
+    private val SHORTS_SEED_QUERIES = listOf("funny shorts", "viral shorts", "dance shorts", "food shorts")
 
     var offlineMode: Boolean
         get() = innerTube.offlineMode
@@ -419,6 +427,44 @@ object YouTube {
                 ?.mapNotNull { it.videoRenderer }
                 ?.map { it.toVideoItem() }
                 .orEmpty()
+                .distinctBy { it.id }
+        }
+
+    /**
+     * Shorts for a search query. The WEB search with the Shorts filter returns a Shorts shelf that
+     * works for guests (no login, no PoToken). Multiple seed queries are merged, because a single
+     * query's shelf only holds ~30 tiles.
+     */
+    suspend fun shortsFeed(limit: Int = 80): Result<List<VideoItem>> =
+        runCatching {
+            val personalized = homeShorts().getOrNull().orEmpty()
+            val fromSeeds =
+                coroutineScope {
+                    SHORTS_SEED_QUERIES
+                        .map { seed -> async { searchShorts(seed).getOrNull().orEmpty() } }
+                        .awaitAll()
+                        .flatten()
+                }
+            (personalized + fromSeeds)
+                .filter { it.id.isNotBlank() }
+                .distinctBy { it.id }
+                .take(limit)
+        }
+
+    /** Shorts for one query (WEB search, Shorts type filter). */
+    suspend fun searchShorts(query: String): Result<List<VideoItem>> =
+        runCatching {
+            val response = innerTube.search(YouTubeClient.WEB, query, SHORTS_SEARCH_PARAMS, setLogin = false).body<ShortsSearchResponse>()
+            response.contents
+                ?.twoColumnSearchResultsRenderer
+                ?.primaryContents
+                ?.sectionListRenderer
+                ?.contents
+                .orEmpty()
+                .flatMap { section -> section.itemSectionRenderer?.contents.orEmpty() }
+                .flatMap { item -> item.gridShelfViewModel?.contents.orEmpty() }
+                .mapNotNull { it.shortsLockupViewModel?.toVideoItem() }
+                .filter { it.id.isNotBlank() }
                 .distinctBy { it.id }
         }
 
@@ -2975,8 +3021,8 @@ object YouTube {
             val details = response.videoDetails ?: error("No video details")
             VideoDetail(
                 id = details.videoId,
-                title = details.title.orEmpty(),
-                channel = details.author.orEmpty(),
+                title = details.title.orEmpty().decodeHtmlEntities(),
+                channel = details.author.orEmpty().decodeHtmlEntities(),
                 channelId = details.channelId,
                 durationSeconds = details.lengthSeconds.toLongOrNull() ?: 0,
                 viewCount = details.viewCount,

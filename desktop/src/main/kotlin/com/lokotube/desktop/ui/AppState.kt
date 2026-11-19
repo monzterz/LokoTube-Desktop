@@ -126,6 +126,9 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
     /** Fullscreen for the video player (hides the chrome); separate from the music [fullscreen]. */
     var videoFullscreen by mutableStateOf(false)
         private set
+
+    /** Set by the Shorts screen: moves the pager by ±1 page, so the window's keys can drive it. */
+    var shortsNavigate: ((Int) -> Unit)? by mutableStateOf(null)
     var editing by mutableStateOf<PlaylistItem?>(null)
     var addingSongsTo by mutableStateOf<PlaylistItem?>(null)
     var collaborating by mutableStateOf<PlaylistItem?>(null)

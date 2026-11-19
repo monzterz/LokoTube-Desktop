@@ -4,6 +4,7 @@ import com.lokotube.innertube.models.Runs
 import com.lokotube.innertube.models.Thumbnails
 import com.lokotube.innertube.models.VideoItem
 import com.lokotube.innertube.models.VideoRenderer
+import com.lokotube.innertube.utils.decodeHtmlEntities
 import kotlinx.serialization.Serializable
 
 /**
@@ -102,7 +103,7 @@ data class ReelItemRenderer(
     val thumbnail: Thumbnails?,
     val navigationEndpoint: com.lokotube.innertube.models.NavigationEndpoint?,
 ) {
-    val title: String? get() = headline?.runs?.firstOrNull()?.text
+    val title: String? get() = headline?.runs?.firstOrNull()?.text?.decodeHtmlEntities()
     val thumbnailUrl: String? get() = thumbnail?.thumbnails?.lastOrNull()?.url
 }
 
@@ -172,7 +173,7 @@ fun ReelItemRenderer.toVideoItem() =
 fun LockupViewModel.toVideoItem() =
     VideoItem(
         id = contentId ?: "",
-        title = metadata?.lockupMetadataViewModel?.title?.content.orEmpty(),
+        title = metadata?.lockupMetadataViewModel?.title?.content.orEmpty().decodeHtmlEntities(),
         thumbnail =
             metadata
                 ?.lockupMetadataViewModel

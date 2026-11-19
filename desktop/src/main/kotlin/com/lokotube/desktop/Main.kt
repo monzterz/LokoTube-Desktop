@@ -438,6 +438,18 @@ private fun handleKey(app: AppState, event: KeyEvent, closeWindow: () -> Unit): 
         }
     }
     if (app.typing) return false
+    // In Shorts, the arrows drive the pager (not the music transport's volume/seek).
+    val shortsNav = app.shortsNavigate
+    if (app.route == Route.Shorts && shortsNav != null) {
+        when (event.key) {
+            Key.DirectionDown, Key.PageDown -> shortsNav(1)
+            Key.DirectionUp, Key.PageUp -> shortsNav(-1)
+            Key.Spacebar -> app.videoPlayer.toggle()
+            Key.M -> app.videoPlayer.toggleMute()
+            else -> return false
+        }
+        return true
+    }
     when (event.key) {
         Key.Spacebar, Key.K -> player.toggle()
         Key.DirectionRight -> player.seekBy(SEEK_SMALL_MS)

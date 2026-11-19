@@ -1,5 +1,6 @@
 package com.lokotube.innertube.models
 
+import com.lokotube.innertube.utils.decodeHtmlEntities
 import kotlinx.serialization.Serializable
 
 /** A regular YouTube video (not a music item). Standalone — kept out of [YTItem] so the music
@@ -41,9 +42,9 @@ data class VideoRenderer(
     fun toVideoItem() =
         VideoItem(
             id = videoId,
-            title = title?.runs?.firstOrNull()?.text.orEmpty(),
+            title = title?.runs?.firstOrNull()?.text.orEmpty().decodeHtmlEntities(),
             thumbnail = thumbnail?.thumbnails?.lastOrNull()?.url,
-            channel = ownerText?.runs?.firstOrNull()?.text,
+            channel = ownerText?.runs?.firstOrNull()?.text?.decodeHtmlEntities(),
             channelId = ownerText?.runs?.firstOrNull()?.navigationEndpoint?.browseEndpoint?.browseId,
             duration = lengthText?.runs?.firstOrNull()?.text?.toDurationSeconds(),
             viewCountText = viewCountText?.runs?.firstOrNull()?.text,
@@ -128,12 +129,12 @@ data class WatchLockupViewModel(
 
     fun toVideoItem(): VideoItem {
         val rows = metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel?.metadataRows.orEmpty()
-        val channel = rows.getOrNull(0)?.metadataParts?.firstOrNull()?.text?.content
+        val channel = rows.getOrNull(0)?.metadataParts?.firstOrNull()?.text?.content?.decodeHtmlEntities()
         val parts = rows.getOrNull(1)?.metadataParts.orEmpty()
         val duration = contentImage?.thumbnailViewModel?.overlays?.firstOrNull()?.thumbnailBottomOverlayViewModel?.badges?.firstOrNull()?.thumbnailBadgeViewModel?.text?.toDurationSeconds()
         return VideoItem(
             id = contentId ?: "",
-            title = metadata?.lockupMetadataViewModel?.title?.content.orEmpty(),
+            title = metadata?.lockupMetadataViewModel?.title?.content.orEmpty().decodeHtmlEntities(),
             thumbnail = contentImage?.thumbnailViewModel?.image?.sources?.lastOrNull()?.url,
             channel = channel,
             channelId = null,

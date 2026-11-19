@@ -71,7 +71,39 @@ class VideoPlayer(private val scope: CoroutineScope) {
     @Volatile private var session: Session? = null
     private var loadJob: Job? = null
 
+    /** Streams resolved ahead of time for the video the user is about to switch to. */
+    @Volatile private var prefetched: Prefetched? = null
+    private var prefetchJob: Job? = null
+
+    private data class Prefetched(
+        val videoId: String,
+        val height: Int?,
+        val streams: VideoStreams,
+        val atMs: Long,
+    )
+
     fun play(videoId: String, height: Int? = null) = load(videoId, height)
+
+    /**
+     * Resolves [videoId] in the background so that a later [play] of it starts almost immediately —
+     * used for the next Short while the current one plays. A stale prefetch is ignored.
+     */
+    fun prefetch(videoId: String, height: Int? = null) {
+        if (mutableState.value.videoId == videoId) return
+        if (prefetched?.let { it.videoId == videoId && it.height == height } == true) return
+        prefetchJob?.cancel()
+        prefetchJob =
+            scope.launch(Dispatchers.IO) {
+                val streams = runCatching { resolveWithRetry(videoId, height) }.getOrNull() ?: return@launch
+                prefetched = Prefetched(videoId, height, streams, System.currentTimeMillis())
+            }
+    }
+
+    fun clearPrefetch() {
+        prefetchJob?.cancel()
+        prefetchJob = null
+        prefetched = null
+    }
 
     fun toggle() {
         val state = mutableState.value
@@ -102,6 +134,8 @@ class VideoPlayer(private val scope: CoroutineScope) {
 
     fun toggleMute() = mutableState.update { it.copy(muted = !it.muted) }
 
+    fun setMuted(muted: Boolean) = mutableState.update { it.copy(muted = muted) }
+
     /** Switches quality by re-resolving with the new height cap. */
     fun setHeight(height: Int) {
         val state = mutableState.value
@@ -112,6 +146,7 @@ class VideoPlayer(private val scope: CoroutineScope) {
         session?.cancelled = true
         session = null
         loadJob?.cancel()
+        clearPrefetch()
         mutableFrame.value = null
         mutablePosition.value = 0
         mutableState.update { it.copy(playing = false, loading = false, videoId = null) }
@@ -121,6 +156,13 @@ class VideoPlayer(private val scope: CoroutineScope) {
         loadJob?.cancel()
         session?.cancelled = true
         session = null
+        // A background resolve for this very video saves the whole extraction round-trip.
+        val cached =
+            prefetched?.takeIf {
+                it.videoId == videoId && it.height == height && fromMs == 0L &&
+                    System.currentTimeMillis() - it.atMs <= PREFETCH_TTL_MS
+            }
+        clearPrefetch()
         val previousDuration = mutableState.value.durationMs
         mutablePosition.value = fromMs
         mutableFrame.value = null
@@ -138,7 +180,7 @@ class VideoPlayer(private val scope: CoroutineScope) {
             scope.launch(Dispatchers.IO) {
                 val streams =
                     try {
-                        resolveWithRetry(videoId, height, fromMs)
+                        cached?.streams ?: resolveWithRetry(videoId, height, fromMs)
                     } catch (error: Exception) {
                         if (isActive) mutableState.update { it.copy(loading = false, playing = false, error = "This video can't be played right now") }
                         return@launch
@@ -405,5 +447,7 @@ class VideoPlayer(private val scope: CoroutineScope) {
         /** Retries after the first resolve attempt before giving up (1s, 2s, 4s backoff). */
         const val MAX_RESOLVE_ATTEMPTS = 3
         const val RESOLVE_RETRY_BASE_MS = 1_000L
+        /** A background-resolved stream older than this is re-resolved (SABR sessions expire). */
+        const val PREFETCH_TTL_MS = 90_000L
     }
 }
