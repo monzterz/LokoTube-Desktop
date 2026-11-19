@@ -259,8 +259,8 @@ private const val SCRIM_HEIGHT = 0.32f
 /** Vertical video: 9:16. */
 private const val SHORTS_ASPECT = 9f / 16f
 
-/** Software decode at 1080p+ is heavy; Shorts are small, so 720p is plenty. */
-private const val SHORTS_HEIGHT = 720
+/** 1080 vertical: a full-height portrait Short at the quality software decode still holds. */
+private const val SHORTS_HEIGHT = 1080
 
 /** The dark theme's teal accent, for the progress line and spinner. */
 private val SHORTS_ACCENT = Color(0xFF2DD4BF)

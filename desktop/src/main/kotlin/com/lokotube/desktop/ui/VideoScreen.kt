@@ -229,8 +229,11 @@ private fun VideoControls(player: VideoPlayer, state: VideoState, position: Long
     }
 }
 
-/** Software VP9/AVC decode is heavy; start at 720p and let the user raise it in the quality menu. */
-private const val DEFAULT_HEIGHT = 720
+/**
+ * Software decode holds real time at 1080p (measured: 1.00x, ~1 core); 1440p/4K fall behind the
+ * clock on this class of machine, so they stay an explicit choice in the quality menu.
+ */
+private const val DEFAULT_HEIGHT = 1080
 
 /** Width of the "Up next" sidebar next to the playing video. */
 private val UP_NEXT_WIDTH = 340.dp

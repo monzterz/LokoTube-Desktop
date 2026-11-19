@@ -29,10 +29,12 @@
 - **Synced lyrics** — word-by-word lyrics from eight sources, with optional AI translation into your language
 - **Full player & mini player** — a full-screen player with big lyrics, plus an always-on-top mini player
 - **Sound** — equalizer, crossfade, volume normalization and mono audio
-- **Downloads** — keep songs for offline listening
+- **Downloads** — keep songs for offline listening, and save **videos** to your Videos folder as one playable file
 - **Radio & autoplay** — endless music from any song or artist
 - **Playlists** — create, edit, reorder and import from a link
 - **Sleep timer** — stop after a set time or at the end of the song
+- **Video & Shorts** — watch regular YouTube videos in a dedicated section and scroll a vertical Shorts feed: autoplay, quality switching, full screen, and a sidebar of what's next
+- **Save videos** — one click writes a single `.mp4`/`.webm` to `~/Videos/LokoTube` (stream-copied, not re-encoded)
 - **Media keys** — system media controls on Windows, macOS and Linux (GNOME/KDE)
 - **Tray & menu bar** — keep playing from the tray or menu bar, and start at sign-in
 
@@ -113,6 +115,8 @@ Signing in opens Google's page in Chrome, Chromium, Edge, Brave or Vivaldi (Fire
 | `Ctrl/⌘ S` / `Ctrl/⌘ R` | Shuffle / repeat |
 | `Ctrl/⌘ D` | Like the song |
 | `Ctrl/⌘ ,` | Settings |
+| `↑` / `↓` | In Shorts: previous / next Short (also the mouse wheel) |
+| `F11` | Video full screen |
 
 ---
 
