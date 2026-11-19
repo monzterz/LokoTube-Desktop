@@ -3036,6 +3036,12 @@ object YouTube {
         }
 
     /** "Up next" videos for the right-hand sidebar, from the WEB `next` response. */
+    /**
+     * New videos from the channels the account follows (`FEsubscriptions`). It is account data, so a
+     * guest gets an empty list (no error) — the screen turns that into a "sign in" line.
+     */
+    suspend fun subscriptionFeed(): Result<List<VideoItem>> = browseVideos("FEsubscriptions", setLogin = true)
+
     /** The channel strip of a video (name, subscribers, whether the account follows it) and the comment token. */
     suspend fun watchInfo(videoId: String): Result<WatchInfo> =
         runCatching {

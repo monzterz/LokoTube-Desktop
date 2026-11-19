@@ -25,6 +25,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -168,6 +172,31 @@ internal fun VideoRow(video: VideoItem, app: AppState) {
             if (meta.isNotBlank()) {
                 Text(meta, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
+        }
+    }
+}
+
+/**
+ * New videos from the channels the account follows (`FEsubscriptions`). The feed belongs to the
+ * account: a guest sees the sign-in line, and a channel is followed from its video page.
+ */
+@Composable
+fun SubscriptionsScreen(app: AppState) {
+    var reload by remember { mutableStateOf(0) }
+    val videos by produceState<List<VideoItem>?>(null, reload) { value = YouTube.subscriptionFeed().getOrNull() }
+    Column(Modifier.fillMaxSize().padding(start = Spacing.L, top = Spacing.S)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Text("Subscriptions", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+            SymbolButton("repeat", "Refresh", Modifier.size(Size.Control), iconSize = Size.IconSmall) { reload++ }
+        }
+        val feed = videos
+        when {
+            feed == null -> Message("Loading…")
+            feed.isEmpty() -> Message("Nothing new from the channels you follow. Subscribe to a channel from a video page — the feed is part of your account, so it needs a sign-in.")
+            else ->
+                ScrollingColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(end = Spacing.S, bottom = Spacing.XXL)) {
+                    items(feed, key = { it.id }, contentType = { "video" }) { VideoRow(it, app) }
+                }
         }
     }
 }

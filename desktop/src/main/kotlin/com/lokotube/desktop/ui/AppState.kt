@@ -80,6 +80,7 @@ sealed interface Route {
     data object VideoHome : Route
     data class VideoSearch(val query: String) : Route
     data object Shorts : Route
+    data object Subscriptions : Route
 }
 
 const val LIKED_PLAYLIST_ID = "LM"
@@ -108,7 +109,7 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
 
     /** True in the standalone video section (player, home, search, or Shorts): the music chrome is hidden. */
     val isVideoSection: Boolean
-        get() = route is Route.Video || route is Route.VideoSearch || route == Route.VideoHome || route == Route.Shorts
+        get() = route is Route.Video || route is Route.VideoSearch || route == Route.VideoHome || route == Route.Shorts || route == Route.Subscriptions
 
     var toast by mutableStateOf<String?>(null)
         private set

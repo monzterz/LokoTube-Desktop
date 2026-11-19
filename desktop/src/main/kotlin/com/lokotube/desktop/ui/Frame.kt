@@ -423,6 +423,7 @@ fun Sidebar(app: AppState) {
         NavRow("history", "History", route == Route.History) { app.go(Route.History) }
         NavRow("smart_display", "Video", route == Route.VideoHome) { app.go(Route.VideoHome) }
         NavRow("bolt", "Shorts", route == Route.Shorts) { app.go(Route.Shorts) }
+        NavRow("subscriptions", "Subscriptions", route == Route.Subscriptions) { app.go(Route.Subscriptions) }
         HorizontalDivider(color = colors.outlineVariant, modifier = Modifier.padding(vertical = Spacing.S))
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(start = Spacing.M)) {
             Text("Your Library", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
