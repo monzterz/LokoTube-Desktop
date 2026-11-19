@@ -23,7 +23,9 @@ import com.lokotube.innertube.models.SongItem
 import com.lokotube.innertube.models.SponsorBlockSkipCategories
 import com.lokotube.innertube.models.SponsorSegment
 import com.lokotube.innertube.models.VideoDetail
+import com.lokotube.innertube.models.CommentsPage
 import com.lokotube.innertube.models.VideoItem
+import com.lokotube.innertube.models.WatchInfo
 import com.lokotube.innertube.models.WatchEndpoint
 import com.lokotube.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.lokotube.innertube.models.YTItem
@@ -39,6 +41,10 @@ import com.lokotube.innertube.utils.decodeHtmlEntities
 import com.lokotube.innertube.utils.parseTime
 import com.lokotube.innertube.models.response.AccountMenuResponse
 import com.lokotube.innertube.models.response.BrowseResponse
+import com.lokotube.innertube.models.response.CommentsResponse
+import com.lokotube.innertube.models.response.toCommentsPage
+import com.lokotube.innertube.models.response.WatchNextResponse
+import com.lokotube.innertube.models.response.toWatchInfo
 import com.lokotube.innertube.models.response.CreatePlaylistResponse
 import com.lokotube.innertube.models.response.EditPlaylistResponse
 import com.lokotube.innertube.models.response.FeedbackResponse
@@ -3030,6 +3036,21 @@ object YouTube {
         }
 
     /** "Up next" videos for the right-hand sidebar, from the WEB `next` response. */
+    /** The channel strip of a video (name, subscribers, whether the account follows it) and the comment token. */
+    suspend fun watchInfo(videoId: String): Result<WatchInfo> =
+        runCatching {
+            innerTube.next(YouTubeClient.WEB, videoId, null, null, null, null, null).body<WatchNextResponse>().toWatchInfo()
+        }
+
+    /**
+     * A page of comments. [continuation] comes from the previous page (or from
+     * [WatchInfo.commentsToken] for the first one) — the comment section is a `next` continuation.
+     */
+    suspend fun comments(continuation: String): Result<CommentsPage> =
+        runCatching {
+            innerTube.next(YouTubeClient.WEB, null, null, null, null, null, continuation).body<CommentsResponse>().toCommentsPage()
+        }
+
     suspend fun relatedVideos(videoId: String): Result<List<VideoItem>> =
         runCatching {
             val response =
