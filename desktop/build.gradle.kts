@@ -44,7 +44,7 @@ fun sealKey(key: String): String {
     return Base64.getEncoder().encodeToString(salt + iv + cipher.doFinal(key.toByteArray(Charsets.UTF_8)))
 }
 
-val appVersion = "0.2.5"
+val appVersion = "0.2.6"
 
 val secretsDir = layout.buildDirectory.dir("generated/secrets")
 val generateSecrets by tasks.registering {

@@ -117,6 +117,10 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
     var updateDownloading by mutableStateOf<Float?>(null)
         private set
 
+    /** The new release is on disk: a restart switches to it (Linux AppImage). */
+    var updateReady by mutableStateOf(false)
+        private set
+
     /** The release-notes dialog on Home. */
     var updateDialog by mutableStateOf(false)
 
@@ -155,6 +159,7 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
                 .onSuccess { file ->
                     updateDownloading = null
                     if (file.name.endsWith(".appimage", ignoreCase = true)) {
+                        updateReady = true
                         showToast("Saved ${file.name} — restart LokoTube to use it")
                     } else {
                         showToast("Saved ${file.name} — run it to update")

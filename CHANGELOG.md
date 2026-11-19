@@ -3,6 +3,11 @@
 Releases are tagged `v*`; each one builds the Windows `.exe`/`.msi`, the macOS `.dmg` (arm64 + Intel) and
 the Linux `.deb`/AppImage through the three GitHub workflows.
 
+## 0.2.6 — the update says when it is ready
+
+- Once the new AppImage is downloaded the Home banner switches to **"Restart to finish updating"**
+  instead of still offering the download.
+
 ## 0.2.5 — check for updates
 
 - **Settings → About** shows the version (it was hardcoded and had gone stale) and has a

@@ -1170,16 +1170,25 @@ private fun UpdateBanner(update: UpdateInfo, app: AppState) {
         Icon(icon("download"), null, tint = colors.primary, modifier = Modifier.size(Size.Icon))
         Spacer(Modifier.width(Spacing.M))
         Column(Modifier.weight(1f)) {
-            Text("LokoTube ${update.version} is available", style = MaterialTheme.typography.titleSmall)
             Text(
-                if (progress != null) "Downloading… ${(progress * 100).toInt()}%" else "Open for what's new",
+                if (app.updateReady) "Restart to finish updating to ${update.version}" else "LokoTube ${update.version} is available",
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Text(
+                when {
+                    app.updateReady -> "The new version is downloaded and waiting"
+                    progress != null -> "Downloading… ${(progress * 100).toInt()}%"
+                    else -> "Open for what's new"
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.onSurfaceVariant,
             )
         }
         Spacer(Modifier.width(Spacing.M))
-        Button(onClick = { app.downloadUpdate() }, enabled = progress == null) {
-            Text(if (progress != null) "${(progress * 100).toInt()}%" else "Download")
+        if (!app.updateReady) {
+            Button(onClick = { app.downloadUpdate() }, enabled = progress == null) {
+                Text(if (progress != null) "${(progress * 100).toInt()}%" else "Download")
+            }
         }
     }
 }
@@ -1204,8 +1213,8 @@ internal fun UpdateNotesDialog(update: UpdateInfo, app: AppState) {
                     app.downloadUpdate()
                     app.updateDialog = false
                 },
-                enabled = app.updateDownloading == null,
-            ) { Text("Download") }
+                enabled = app.updateDownloading == null && !app.updateReady,
+            ) { Text(if (app.updateReady) "Restart to finish" else "Download") }
         },
         dismissButton = { TextButton(onClick = { app.updateDialog = false }) { Text("Later") } },
     )
