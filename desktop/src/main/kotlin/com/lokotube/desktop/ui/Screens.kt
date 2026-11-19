@@ -82,6 +82,12 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import java.time.LocalTime
+import com.lokotube.desktop.data.UpdateInfo
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
 /**
  * A page's data: still loading (null), or the answer. A page that failed for want of a connection
@@ -297,6 +303,9 @@ fun HomeScreen(app: AppState) {
                 item(key = "greeting", contentType = "greeting") {
                     val name = app.profile?.name?.substringBefore(' ')
                     PageTitle(if (name.isNullOrBlank()) greeting() else "${greeting()}, $name")
+                }
+                app.updateAvailable?.let { update ->
+                    item(key = "update", contentType = "update") { UpdateBanner(update, app) }
                 }
                 if (home.chips.isNotEmpty()) {
                     item(key = "chips", contentType = "chips") {
@@ -1140,3 +1149,81 @@ private fun DownloadedSongRow(track: Track, index: Int, tracks: List<Track>, app
         Text(formatTime(track.durationMs), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
     }
 }
+
+/** Home's "there is a newer release" strip: version, a prompt, and the download itself. */
+@Composable
+private fun UpdateBanner(update: UpdateInfo, app: AppState) {
+    val colors = MaterialTheme.colorScheme
+    val progress = app.updateDownloading
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(start = Spacing.S, end = Spacing.L, bottom = Spacing.L)
+                .clip(ErShape.Medium)
+                .background(colors.primary.copy(alpha = 0.12f))
+                .clickable { app.updateDialog = true }
+                .handCursor()
+                .padding(Spacing.M),
+    ) {
+        Icon(icon("download"), null, tint = colors.primary, modifier = Modifier.size(Size.Icon))
+        Spacer(Modifier.width(Spacing.M))
+        Column(Modifier.weight(1f)) {
+            Text("LokoTube ${update.version} is available", style = MaterialTheme.typography.titleSmall)
+            Text(
+                if (progress != null) "Downloading… ${(progress * 100).toInt()}%" else "Open for what's new",
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.width(Spacing.M))
+        Button(onClick = { app.downloadUpdate() }, enabled = progress == null) {
+            Text(if (progress != null) "${(progress * 100).toInt()}%" else "Download")
+        }
+    }
+}
+
+/** The release notes, scrollable — GitHub's markdown shown as the text it carries. */
+@Composable
+internal fun UpdateNotesDialog(update: UpdateInfo, app: AppState) {
+    AlertDialog(
+        onDismissRequest = { app.updateDialog = false },
+        title = { Text("LokoTube ${update.version}") },
+        text = {
+            Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
+                Text(
+                    update.notes.ifBlank { "This release has no notes." }.asPlainNotes(),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    app.downloadUpdate()
+                    app.updateDialog = false
+                },
+                enabled = app.updateDownloading == null,
+            ) { Text("Download") }
+        },
+        dismissButton = { TextButton(onClick = { app.updateDialog = false }) { Text("Later") } },
+    )
+}
+
+/**
+ * GitHub sends markdown; the dialog has no markdown renderer, so headings lose their hashes, bold
+ * loses its asterisks and list items become bullets instead of a wall of punctuation.
+ */
+private fun String.asPlainNotes(): String =
+    lines()
+        .joinToString("\n") { line ->
+            val trimmed = line.trimStart()
+            when {
+                trimmed.startsWith("#") -> trimmed.trimStart('#').trim()
+                trimmed.startsWith("- ") || trimmed.startsWith("* ") -> "• " + trimmed.drop(2)
+                else -> line
+            }
+        }
+        .replace("**", "")
+        .replace("`", "")

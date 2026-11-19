@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.lokotube.desktop.data.BlockedChannels
 import com.lokotube.desktop.data.Downloads
 import com.lokotube.desktop.data.Pref
+import com.lokotube.desktop.data.Updates
 import com.lokotube.desktop.data.Settings
 import com.lokotube.desktop.playback.Equalizer
 import com.lokotube.desktop.playback.LyricsTranslator
@@ -297,9 +298,26 @@ fun SettingsScreen(app: AppState) {
             }
             item(key = "about", contentType = "group") {
                 Group("About") {
-                    Text("LokoTube $APP_VERSION for ${Os.name}", style = MaterialTheme.typography.titleSmall)
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.weight(1f)) {
+                            Text("LokoTube ${Updates.currentVersion} for ${Os.name}", style = MaterialTheme.typography.titleSmall)
+                            app.updateAvailable?.let { update ->
+                                Text(
+                                    "Version ${update.version} is available",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
+                        OutlinedButton(onClick = { app.checkForUpdates() }, enabled = !app.updateChecking) {
+                            Text(if (app.updateChecking) "Checking…" else "Check for updates")
+                        }
+                    }
                     Spacer(Modifier.height(Spacing.XS))
                     Text("Free software under GPL-3.0, derived from Metrolist.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    app.updateAvailable?.let { update ->
+                        TextButton(onClick = { app.updateDialog = true }) { Text("What's new in ${update.version}") }
+                    }
                 }
             }
         }
@@ -329,7 +347,6 @@ private fun EqualizerControls() {
 
 private val EQ_SLIDER_HEIGHT = 140.dp
 /** Bumped with appVersion in build.gradle.kts for every installer. */
-private const val APP_VERSION = "2.4.2"
 private const val BYTES_PER_MB = 1_048_576.0
 private const val MB_PER_GB = 1024
 private const val MAX_CROSSFADE = 12
@@ -344,7 +361,7 @@ private fun backUp(app: AppState) {
     val name = dialog.file ?: return
     val target = File(dialog.directory, if (name.endsWith(".zip")) name else "$name.zip")
     app.scope.launch(Dispatchers.IO) {
-        runCatching { Backup.write(target, version = APP_VERSION) }
+        runCatching { Backup.write(target, version = Updates.currentVersion) }
             .onSuccess { app.showToast("Backed up to ${target.name}") }
             .onFailure { app.showToast("Couldn't save the backup there. Try another folder.") }
     }

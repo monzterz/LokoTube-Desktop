@@ -3,6 +3,16 @@
 Releases are tagged `v*`; each one builds the Windows `.exe`/`.msi`, the macOS `.dmg` (arm64 + Intel) and
 the Linux `.deb`/AppImage through the three GitHub workflows.
 
+## 0.2.5 — check for updates
+
+- **Settings → About** shows the version (it was hardcoded and had gone stale) and has a
+  **Check for updates** button.
+- **Home** shows a banner when a newer release exists: version, a short prompt, and a Download button.
+  Opening it lists the release notes.
+- The update is fetched from GitHub's release page. On a Linux AppImage it lands next to the running
+  one and the stable `LokoTube.AppImage` symlink moves to it — restart to switch, and older downloads
+  are cleaned up. Elsewhere the file is saved and its folder opened.
+
 ## 0.2.4 — shelf arrows
 
 - The video home's shelves (Live / Trending / Recommended) are longer than the window but had no

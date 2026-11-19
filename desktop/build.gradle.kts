@@ -44,6 +44,8 @@ fun sealKey(key: String): String {
     return Base64.getEncoder().encodeToString(salt + iv + cipher.doFinal(key.toByteArray(Charsets.UTF_8)))
 }
 
+val appVersion = "0.2.5"
+
 val secretsDir = layout.buildDirectory.dir("generated/secrets")
 val generateSecrets by tasks.registering {
     val source = rootProject.file("../local.properties")
@@ -68,6 +70,7 @@ val generateSecrets by tasks.registering {
                 const val AI_BASE_URL = "${setting("LOKOTUBE_AI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")}"
                 const val AI_MODEL = "${setting("LOKOTUBE_AI_MODEL", "gemini-flash-lite-latest")}"
                 const val AI_FALLBACK_MODELS = "${setting("LOKOTUBE_AI_FALLBACK_MODELS", "gemini-3.5-flash-lite,gemini-3.8-flash,gemini-flash-latest")}"
+                const val VERSION = "$appVersion"
             }
             """.trimIndent(),
         )
@@ -89,7 +92,6 @@ val fromAndroid by tasks.registering(Sync::class) {
 }
 kotlin.sourceSets["main"].kotlin.srcDir(fromAndroid)
 
-val appVersion = "0.2.4"
 val ktor = "3.6.0"
 val ffmpegPresets = "1.5.14"
 

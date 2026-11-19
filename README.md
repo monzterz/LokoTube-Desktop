@@ -37,6 +37,7 @@
 - **Save videos** — one click writes a single `.mp4`/`.webm` to `~/Videos/LokoTube` (stream-copied, not re-encoded)
 - **Subscriptions** — a feed of new videos from the channels you follow (part of your account, so it fills up once you are signed in)
 - **Comments, description & subscribing** — the watch page carries the channel strip with a Subscribe button, and the sidebar holds the comments (with likes and replies, a page at a time) and the video's full description, selectable for copying
+- **In-app updates** — the app checks GitHub on start, Home says when something newer is out (with the release notes), and one click downloads it
 - **Media keys** — system media controls on Windows, macOS and Linux (GNOME/KDE)
 - **Tray & menu bar** — keep playing from the tray or menu bar, and start at sign-in
 

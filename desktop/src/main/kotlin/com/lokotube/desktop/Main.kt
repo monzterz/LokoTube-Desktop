@@ -121,6 +121,7 @@ import com.lokotube.desktop.ui.SearchPanel
 import com.lokotube.desktop.ui.SearchResultsScreen
 import com.lokotube.desktop.ui.SettingsScreen
 import com.lokotube.desktop.ui.ShortsScreen
+import com.lokotube.desktop.ui.UpdateNotesDialog
 import com.lokotube.desktop.ui.SubscriptionsScreen
 import com.lokotube.desktop.ui.VideoHomeScreen
 import com.lokotube.desktop.ui.VideoScreen
@@ -531,6 +532,8 @@ private const val PAGE_FADE_MS = 160
 private fun App(app: AppState) {
     val state by app.player.state.collectAsState()
     LaunchedEffect(state.current?.id) { app.currentId = state.current?.id }
+    // One quiet check when the app opens: Home shows a banner only when something newer exists.
+    LaunchedEffect(Unit) { app.checkForUpdates(quiet = true) }
 
     var search by remember { mutableStateOf(TextFieldValue("")) }
     var searchOpen by remember { mutableStateOf(false) }
@@ -596,6 +599,9 @@ private fun App(app: AppState) {
                 focusManager.clearFocus()
             })
         }
+        val update = app.updateAvailable
+        if (update != null && app.updateDialog) UpdateNotesDialog(update, app)
+
         app.toast?.let { message ->
             Text(
                 message,

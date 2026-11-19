@@ -15,6 +15,8 @@ import androidx.compose.runtime.setValue
 import com.lokotube.desktop.auth.AccountStore
 import com.lokotube.desktop.data.BlockedChannels
 import com.lokotube.desktop.data.Downloads
+import com.lokotube.desktop.data.UpdateInfo
+import com.lokotube.desktop.data.Updates
 import com.lokotube.desktop.playback.Credit
 import com.lokotube.desktop.playback.Player
 import com.lokotube.desktop.playback.Track
@@ -34,6 +36,8 @@ import com.lokotube.innertube.models.SongItem
 import com.lokotube.innertube.models.WatchEndpoint
 import com.lokotube.innertube.models.YTItem
 import com.lokotube.innertube.pages.HomePage
+import java.awt.Desktop
+import java.net.URI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -102,6 +106,67 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
 
     /** Saves videos to the user's Videos folder (streamed, then muxed without re-encoding). */
     val videoDownloader = VideoDownloader(scope)
+
+    /** A newer release, when the last check found one. */
+    var updateAvailable by mutableStateOf<UpdateInfo?>(null)
+        private set
+    var updateChecking by mutableStateOf(false)
+        private set
+
+    /** Progress of an in-app download of the new release, 0..1. */
+    var updateDownloading by mutableStateOf<Float?>(null)
+        private set
+
+    /** The release-notes dialog on Home. */
+    var updateDialog by mutableStateOf(false)
+
+    /** Called once when the app starts: if a newer release exists, Home says so. */
+    fun checkForUpdates(quiet: Boolean = false) {
+        if (updateChecking) return
+        updateChecking = true
+        scope.launch {
+            val result = Updates.latest()
+            result
+                .onSuccess { latest ->
+                    val newer = latest.takeIf { Updates.isNewer(it.version, Updates.currentVersion) }
+                    updateAvailable = newer
+                    if (!quiet) showToast(if (newer != null) "Version ${newer.version} is available" else "You're on the latest version")
+                }
+                .onFailure { if (!quiet) showToast("Couldn't check for updates: ${it.message}") }
+            updateChecking = false
+        }
+    }
+
+    /**
+     * Fetches the new release. On a Linux AppImage it lands next to the running one and the stable
+     * symlink moves to it (restart to switch); elsewhere the file is saved and its folder opened.
+     */
+    fun downloadUpdate() {
+        val update = updateAvailable ?: return
+        if (updateDownloading != null) return
+        val asset = update.assetForThisSystem()
+        if (asset == null) {
+            runCatching { Desktop.getDesktop().browse(URI(update.pageUrl)) }
+            return
+        }
+        updateDownloading = 0f
+        scope.launch {
+            runCatching { Updates.download(asset) { fraction -> updateDownloading = fraction } }
+                .onSuccess { file ->
+                    updateDownloading = null
+                    if (file.name.endsWith(".appimage", ignoreCase = true)) {
+                        showToast("Saved ${file.name} — restart LokoTube to use it")
+                    } else {
+                        showToast("Saved ${file.name} — run it to update")
+                        runCatching { Desktop.getDesktop().open(file.parentFile) }
+                    }
+                }
+                .onFailure {
+                    updateDownloading = null
+                    showToast("Download failed: ${it.message}")
+                }
+        }
+    }
 
     val route: Route get() = history[historyIndex]
     val canGoBack: Boolean get() = historyIndex > 0
