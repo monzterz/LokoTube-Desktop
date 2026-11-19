@@ -175,3 +175,53 @@ object Downloads {
         save()
     }
 }
+
+/** A video saved to the user's Videos folder as a single playable file. */
+@Serializable
+data class SavedVideo(
+    val id: String,
+    val title: String,
+    val path: String,
+    val bytes: Long,
+    val savedAt: Long,
+)
+
+/** Downloaded videos, in a folder the user can open outside LokoTube. */
+object VideoDownloads {
+    private val serializer = ListSerializer(SavedVideo.serializer())
+
+    /** ~/Videos/LokoTube (the same physical folder on every platform). */
+    val dir = File(System.getProperty("user.home"), "Videos/LokoTube").apply { mkdirs() }
+
+    private val list = File(AppFiles.root, "video_downloads.json")
+    val videos = mutableStateListOf<SavedVideo>().apply { addAll(readList(list) { json.decodeFromString(serializer, it) }) }
+
+    private fun save() = list.writeText(json.encodeToString(serializer, videos.toList()))
+
+    /** The saved file for [id], when it is still on disk. */
+    fun find(id: String): SavedVideo? = videos.firstOrNull { it.id == id }?.takeIf { File(it.path).exists() }
+
+    /** A free file name for a new download, based on the title (characters a file system rejects are replaced). */
+    fun newFile(title: String, id: String, extension: String): File {
+        val base = "$title [$id]".replace(Regex("[\\\\/:*?\"<>|\\p{Cntrl}]"), "_").trim().take(90).ifBlank { id }
+        var file = File(dir, "$base.$extension")
+        var copy = 2
+        while (file.exists()) {
+            file = File(dir, "$base ($copy).$extension")
+            copy++
+        }
+        return file
+    }
+
+    fun add(video: SavedVideo) {
+        videos.removeAll { it.id == video.id }
+        videos.add(0, video)
+        save()
+    }
+
+    fun remove(id: String) {
+        videos.firstOrNull { it.id == id }?.let { File(it.path).delete() }
+        videos.removeAll { it.id == id }
+        save()
+    }
+}

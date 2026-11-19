@@ -157,6 +157,8 @@ private fun ShortsPager(feed: List<VideoItem>, app: AppState) {
                     tint = Color.White,
                     glass = true,
                 ) { player.toggleMute() }
+                val current = feed.getOrNull(pagerState.currentPage)
+                VideoDownloadButton(app, current?.id, current?.title, modifier = Modifier.size(Size.Control))
             }
         }
         Text(

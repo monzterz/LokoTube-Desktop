@@ -61,6 +61,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.lokotube.desktop.data.Downloads
+import com.lokotube.desktop.data.SavedVideo
+import com.lokotube.desktop.data.VideoDownloads
 import com.lokotube.desktop.data.History
 import com.lokotube.desktop.data.Settings
 import com.lokotube.desktop.data.SpeedDial
@@ -1042,8 +1044,99 @@ private fun SaveButton(playlistId: String, app: AppState) {
 
 @Composable
 fun DownloadsScreen(app: AppState) {
+    val videos = VideoDownloads.videos
+    val songs = Downloads.tracks
     Column(Modifier.fillMaxSize().padding(start = Spacing.L, top = Spacing.S)) {
         PageTitle("Downloads")
-        TrackList(Downloads.tracks, app, "Downloaded songs play without a connection and show up here.")
+        if (videos.isEmpty() && songs.isEmpty()) {
+            Message("Videos and songs you download show up here.")
+            return@Column
+        }
+        ScrollingColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(end = Spacing.S, bottom = Spacing.XXL)) {
+            if (videos.isNotEmpty()) {
+                item(key = "downloads-videos") { SectionHeader("Videos · ${VideoDownloads.dir.path}") }
+                items(videos, key = { "video-${it.id}" }, contentType = { "video" }) { video -> SavedVideoRow(video, app) }
+            }
+            if (songs.isNotEmpty()) {
+                item(key = "downloads-songs") { SectionHeader("Songs") }
+                itemsIndexed(songs.toList(), key = { _, track -> "song-${track.id}" }, contentType = { _, _ -> "song" }) { index, track ->
+                    DownloadedSongRow(track, index, songs.toList(), app)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(top = Spacing.M, bottom = Spacing.S, end = Spacing.L),
+    )
+}
+
+/** A saved video: click to play it in the system's player, or delete it from disk. */
+@Composable
+private fun SavedVideoRow(video: SavedVideo, app: AppState) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            Modifier
+                .padding(end = Spacing.L)
+                .fillMaxWidth()
+                .height(Size.ListRow)
+                .clip(ErShape.Small)
+                .clickable { openSavedVideo(video) }
+                .handCursor()
+                .padding(horizontal = Spacing.S),
+    ) {
+        Box(Modifier.size(Size.ListThumb).clip(ErShape.Small).background(colors.surfaceContainerHigh), contentAlignment = Alignment.Center) {
+            Icon(icon("smart_display"), null, tint = colors.onSurfaceVariant, modifier = Modifier.size(Size.Icon))
+        }
+        Spacer(Modifier.width(Spacing.M))
+        Column(Modifier.weight(1f)) {
+            Text(video.title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                "Video · ${"%.1f".format(video.bytes / 1_048_576.0)} MB",
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.onSurfaceVariant,
+            )
+        }
+        SymbolButton("play", "Play", Modifier.size(Size.Control), iconSize = Size.IconSmall) { openSavedVideo(video) }
+        SymbolButton("delete", "Delete", Modifier.size(Size.Control), iconSize = Size.IconSmall) {
+            VideoDownloads.remove(video.id)
+            app.showToast("Removed ${video.title}")
+        }
+    }
+}
+
+/** A downloaded song, in the same shape as the lists elsewhere in the app. */
+@Composable
+private fun DownloadedSongRow(track: Track, index: Int, tracks: List<Track>, app: AppState) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            Modifier
+                .padding(end = Spacing.L)
+                .fillMaxWidth()
+                .height(Size.ListRow)
+                .clip(ErShape.Small)
+                .clickable { app.player.play(tracks, index) }
+                .handCursor()
+                .padding(horizontal = Spacing.S),
+    ) {
+        Art(track.artUrl, Modifier.size(Size.ListThumb), pixels = 120)
+        Spacer(Modifier.width(Spacing.M))
+        Column(Modifier.weight(1f)) {
+            Text(track.title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            CreditsText(track.allCredits, app, MaterialTheme.typography.bodySmall, colors.onSurfaceVariant)
+        }
+        Text(formatTime(track.durationMs), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
     }
 }

@@ -46,11 +46,17 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.lokotube.desktop.data.SavedVideo
+import com.lokotube.desktop.data.VideoDownloads
+import com.lokotube.desktop.playback.DownloadProgress
 import com.lokotube.desktop.playback.VideoPlayer
 import com.lokotube.desktop.playback.VideoState
 import com.lokotube.innertube.YouTube
 import com.lokotube.innertube.models.VideoItem
+import java.awt.Desktop
+import java.io.File
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.blur.hazeBlur
@@ -196,6 +202,8 @@ private fun VideoControls(player: VideoPlayer, state: VideoState, position: Long
             glass = true,
         ) { player.toggleMute() }
 
+        VideoDownloadButton(app, state.videoId, title = null, modifier = Modifier.size(Size.Control))
+
         Box {
             SymbolButton("settings", "Quality", Modifier.size(Size.Control), tint = Color.White, iconSize = Size.IconSmall, glass = true) { qualityOpen = true }
             DropdownMenu(expanded = qualityOpen, onDismissRequest = { qualityOpen = false }, shape = ErShape.Medium, containerColor = colors.surfaceContainerHighest) {
@@ -229,3 +237,65 @@ private val UP_NEXT_WIDTH = 340.dp
 
 /** The dark theme's teal accent, for the play/pause and transport accents over the dark video. */
 private val VIDEO_ACCENT = Color(0xFF2DD4BF)
+
+/**
+ * Saves the video to the user's Videos folder. One button, three states: press to download, a ring
+ * while it runs (press again to cancel), then a check that opens the saved file.
+ */
+@Composable
+internal fun VideoDownloadButton(
+    app: AppState,
+    videoId: String?,
+    title: String?,
+    modifier: Modifier = Modifier,
+    tint: Color = Color.White,
+    iconSize: Dp = Size.IconSmall,
+) {
+    val id = videoId ?: return
+    val downloads by app.videoDownloader.state.collectAsState()
+    val progress = downloads[id]
+    val saved = VideoDownloads.find(id)
+    val failure = progress?.failure
+    LaunchedEffect(failure) {
+        if (failure != null) app.showToast(failure)
+    }
+    val savedNow = progress?.file?.takeIf { progress.phase == DownloadProgress.Phase.DONE }
+    LaunchedEffect(savedNow) {
+        savedNow?.let { app.showToast("Saved to ${it.parentFile.name}/${it.name}") }
+    }
+    when {
+        progress?.running == true -> {
+            val fraction = progress.fraction
+            Box(
+                modifier.glass(CircleShape).handCursor().clickable { app.videoDownloader.cancel(id) },
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(
+                    progress = { fraction },
+                    color = VIDEO_ACCENT,
+                    trackColor = Color.White.copy(alpha = 0.18f),
+                    strokeWidth = Spacing.XXS,
+                    modifier = Modifier.size(Size.Control - Spacing.S),
+                )
+                Text(
+                    "${(fraction * 100).toInt()}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White,
+                )
+            }
+        }
+        saved != null ->
+            SymbolButton("check", "Downloaded — open the file", modifier, tint = VIDEO_ACCENT, iconSize = iconSize, glass = true) {
+                openSavedVideo(saved)
+            }
+        else ->
+            SymbolButton("download", "Download", modifier, tint = tint, iconSize = iconSize, glass = true) {
+                app.videoDownloader.start(id, title.orEmpty())
+            }
+    }
+}
+
+/** Hands a saved video to the system's player. */
+fun openSavedVideo(video: SavedVideo) {
+    runCatching { Desktop.getDesktop().open(File(video.path)) }
+}

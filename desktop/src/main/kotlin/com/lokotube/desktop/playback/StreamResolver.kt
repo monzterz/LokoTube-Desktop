@@ -76,6 +76,8 @@ data class VideoStreams(
     val durationMs: Long,
     /** Container hint from YouTube (e.g. "video/mp4" for AVC/AV1, "video/webm" for VP9). */
     val videoMimeType: String?,
+    /** How many bytes the video track is, when YouTube says (used for a download's progress). */
+    val videoBytes: Long? = null,
     /** Live streams use HLS manifests (video-only and audio-only), not SABR. */
     val hlsVideoUrl: String? = null,
     val hlsAudioUrl: String? = null,
@@ -153,6 +155,7 @@ object StreamResolver {
             availableHeights = resolved.availableHeights,
             durationMs = resolved.durationMs,
             videoMimeType = resolved.videoMimeType,
+            videoBytes = resolved.videoContentLengthBytes,
             hlsVideoUrl = if (isHls) resolved.videoUrl else null,
             hlsAudioUrl = if (isHls) resolved.audioUrl else null,
         )

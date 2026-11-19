@@ -18,6 +18,7 @@ import com.lokotube.desktop.data.Downloads
 import com.lokotube.desktop.playback.Credit
 import com.lokotube.desktop.playback.Player
 import com.lokotube.desktop.playback.Track
+import com.lokotube.desktop.playback.VideoDownloader
 import com.lokotube.desktop.playback.VideoPlayer
 import com.lokotube.desktop.playback.toTrack
 import com.lokotube.desktop.window.WindowChrome
@@ -97,6 +98,9 @@ class AppState(val player: Player, val scope: CoroutineScope, val onSignOut: () 
 
     /** Video playback (YouTube video + Shorts), separate from the music [player]. */
     val videoPlayer = VideoPlayer(scope)
+
+    /** Saves videos to the user's Videos folder (streamed, then muxed without re-encoding). */
+    val videoDownloader = VideoDownloader(scope)
 
     val route: Route get() = history[historyIndex]
     val canGoBack: Boolean get() = historyIndex > 0
