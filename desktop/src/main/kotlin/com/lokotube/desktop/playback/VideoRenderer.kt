@@ -137,11 +137,13 @@ class JavaCvVideoRenderer(
  * Live streams have no seek and no known end, so duration is 0 and [seek] is a no-op.
  */
 class HlsVideoRenderer(
-    url: String,
+    private val url: String,
     headers: Map<String, String> = emptyMap(),
 ) : VideoRenderer {
     private val converter = Java2DFrameConverter()
-    private val grabber: FFmpegFrameGrabber
+    private var grabber: FFmpegFrameGrabber
+    private val headerOption: String? =
+        if (headers.isNotEmpty()) headers.entries.joinToString("\r\n") { (k, v) -> "$k: $v" } else null
 
     override var width = 0
         private set
@@ -151,25 +153,36 @@ class HlsVideoRenderer(
     override val durationMs = 0L
 
     init {
-        grabber =
-            FFmpegFrameGrabber(url).also {
-                it.setOption("probesize", "1000000")
-                it.setOption("analyzeduration", "1000000")
-                it.setOption("reconnect", "1")
-                it.setOption("reconnect_streamed", "1")
-                if (headers.isNotEmpty()) {
-                    it.setOption("headers", headers.entries.joinToString("\r\n") { (k, v) -> "$k: $v" })
-                }
-                it.start()
-            }
+        grabber = open()
         width = grabber.imageWidth
         height = grabber.imageHeight
     }
 
+    private fun open(): FFmpegFrameGrabber =
+        FFmpegFrameGrabber(url).also {
+            it.setOption("probesize", "1000000")
+            it.setOption("analyzeduration", "1000000")
+            it.setOption("reconnect", "1")
+            it.setOption("reconnect_streamed", "1")
+            headerOption?.let { h -> it.setOption("headers", h) }
+            it.start()
+        }
+
     override fun nextFrame(): VideoRenderer.Frame? {
-        val frame = grabber.grab() ?: return null
-        val image = converter.convert(frame) ?: return null
-        return VideoRenderer.Frame(image, grabber.timestamp / US_PER_MS)
+        while (true) {
+            val frame = runCatching { grabber.grab() }.getOrNull()
+            if (frame != null) {
+                val image = converter.convert(frame) ?: continue
+                return VideoRenderer.Frame(image, grabber.timestamp / US_PER_MS)
+            }
+            // Live edge reached (the playlist has no more segments yet): wait a beat, then re-open
+            // the manifest so FFmpeg sees the newly published segments. For a live stream this is
+            // the normal loop — never treat it as end-of-stream.
+            Thread.sleep(LIVE_EDGE_WAIT_MS)
+            runCatching { grabber.close() }
+            val reopened = runCatching { open() }.getOrNull() ?: return null
+            grabber = reopened
+        }
     }
 
     override fun seek(ms: Long) {
@@ -182,5 +195,6 @@ class HlsVideoRenderer(
 
     private companion object {
         const val US_PER_MS = 1000L
+        const val LIVE_EDGE_WAIT_MS = 500L
     }
 }

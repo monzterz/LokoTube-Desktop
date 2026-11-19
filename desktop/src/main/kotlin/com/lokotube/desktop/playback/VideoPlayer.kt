@@ -144,6 +144,9 @@ class VideoPlayer(private val scope: CoroutineScope) {
         /** Wall-clock reference the video throttles to; the audio seeks to catch up to it. */
         @Volatile var clockStartMs = 0L
 
+        /** DVR timestamp of the first live-HLS frame, used to normalize live positions to 0. */
+        private var liveStartTsMs = -1L
+
         override fun run() {
             val audioThread =
                 when {
@@ -301,17 +304,26 @@ class VideoPlayer(private val scope: CoroutineScope) {
                         }
                         break
                     }
+                    // Live-HLS frames carry the DVR buffer timestamp (e.g. start 3220s), which would
+                    // make the throttle below wait ~53min. Normalize the first frame to 0 instead.
+                    val displayMs =
+                        if (streams.isLiveHls) {
+                            if (liveStartTsMs < 0) liveStartTsMs = frame.timestampMs
+                            frame.timestampMs - liveStartTsMs
+                        } else {
+                            frame.timestampMs
+                        }
                     // Throttle to the wall clock: play in real time, independent of audio readiness.
                     while (!cancelled && mutableState.value.playing) {
                         val elapsed = System.currentTimeMillis() - clockStartMs
-                        val ahead = frame.timestampMs - elapsed
+                        val ahead = displayMs - elapsed
                         if (ahead <= 0) break
                         sleep(min(SYNC_POLL_MS, ahead))
                     }
                     if (cancelled) break
                     if (mutableState.value.playing) {
                         mutableFrame.value = frame.image
-                        mutablePosition.value = frame.timestampMs
+                        mutablePosition.value = displayMs
                     }
                 }
             } catch (error: Exception) {
