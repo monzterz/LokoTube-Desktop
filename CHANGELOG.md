@@ -3,6 +3,13 @@
 Releases are tagged `v*`; each one builds the Windows `.exe`/`.msi`, the macOS `.dmg` (arm64 + Intel) and
 the Linux `.deb`/AppImage through the three GitHub workflows.
 
+## 0.2.4 — shelf arrows
+
+- The video home's shelves (Live / Trending / Recommended) are longer than the window but had no
+  scrollbar and no mouse affordance. Each shelf now has a round glass arrow on the right (and on the
+  left once you have scrolled): one press moves three cards. The button sits on a dark disc as well as
+  the glass, so it stays readable over a bright thumbnail.
+
 ## 0.2.3 — subscription feed
 
 - **Subscriptions** section in the sidebar: the newest videos from the channels the account follows

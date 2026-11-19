@@ -6,6 +6,7 @@
 package com.lokotube.desktop.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,12 +33,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import com.lokotube.innertube.YouTube
 import com.lokotube.innertube.models.VideoItem
 
@@ -65,13 +70,56 @@ private fun VideoShelf(title: String, videos: List<VideoItem>?, app: AppState) {
         when {
             videos == null -> Text("Loading…", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
             videos.isEmpty() -> Text("Nothing here", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
-            else ->
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                    items(videos, key = { it.id }, contentType = { "video" }) { video ->
-                        Box(Modifier.width(240.dp)) { VideoCard(video, app) }
+            else -> {
+                val row = rememberLazyListState()
+                val scope = rememberCoroutineScope()
+                // Derived from layoutInfo: LazyListState.canScrollForward stayed false in this layout,
+                // so arrows gated on it never appeared on a row longer than the window.
+                val visible = row.layoutInfo.visibleItemsInfo
+                val moreLeft = visible.isNotEmpty() && visible.first().index > 0
+                val moreRight = visible.isNotEmpty() && visible.last().index < videos.lastIndex
+                Box(Modifier.fillMaxWidth()) {
+                    LazyRow(
+                        state = row,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+                        // Room for the arrows on both ends, so a card never sits under them.
+                        contentPadding = PaddingValues(horizontal = Spacing.XS + Size.Control),
+                    ) {
+                        items(videos, key = { it.id }, contentType = { "video" }) { video ->
+                            Box(Modifier.width(240.dp)) { VideoCard(video, app) }
+                        }
+                    }
+                    // A row has no scrollbar: these are how a mouse user reaches the rest of it.
+                    if (moreLeft) {
+                        ShelfArrow("chevron_left", "Previous videos", Modifier.align(Alignment.CenterStart).padding(start = Spacing.XS)) {
+                            scope.launch { row.animateScrollToItem((row.firstVisibleItemIndex - SHELF_PAGE).coerceAtLeast(0)) }
+                        }
+                    }
+                    if (moreRight) {
+                        ShelfArrow("chevron_right", "More videos", Modifier.align(Alignment.CenterEnd).padding(end = Spacing.XS)) {
+                            scope.launch { row.animateScrollToItem((row.firstVisibleItemIndex + SHELF_PAGE).coerceAtMost(videos.lastIndex)) }
+                        }
                     }
                 }
+            }
         }
+    }
+}
+
+/** The round button that moves a shelf: glass over a dark disc, so it reads on any thumbnail. */
+@Composable
+private fun ShelfArrow(symbol: String, description: String, modifier: Modifier, onClick: () -> Unit) {
+    Box(
+        modifier =
+            modifier
+                .size(Size.Control)
+                .background(Color.Black.copy(alpha = 0.55f), CircleShape)
+                .glass(CircleShape)
+                .clickable(onClick = onClick)
+                .handCursor(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon(symbol), description, tint = Color.White, modifier = Modifier.size(Size.Icon))
     }
 }
 
@@ -200,3 +248,6 @@ fun SubscriptionsScreen(app: AppState) {
         }
     }
 }
+
+/** How many cards one arrow press moves a shelf. */
+private const val SHELF_PAGE = 3
