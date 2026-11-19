@@ -154,6 +154,13 @@ dependencies {
     testImplementation("com.github.hypfvieh:dbus-java-transport-tcp:$dbusJava")
 }
 
+// Everything under playback talks to YouTube for real (resolving, decoding, downloading). GitHub's
+// runners share an IP that YouTube throttles, so those tests are opt-in instead of part of the suite:
+//   ./gradlew -p desktop test -PliveTests
+tasks.withType<Test>().configureEach {
+    if (!project.hasProperty("liveTests")) exclude("**/playback/**")
+}
+
 compose.desktop {
     application {
         mainClass = "com.lokotube.desktop.MainKt"

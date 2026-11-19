@@ -134,6 +134,9 @@ Requires JDK 21; the Android app also needs the Android SDK.
 
 No Mac or Linux at hand? The macOS and Linux app workflows in the **Actions** tab build them on GitHub's machines. More notes are in [AGENTS.md](AGENTS.md).
 
+Tests that call YouTube (everything under `playback`) are opt-in — CI runners share a throttled IP:
+`./gradlew -p desktop test -PliveTests`.
+
 ---
 
 ## Disclaimer
