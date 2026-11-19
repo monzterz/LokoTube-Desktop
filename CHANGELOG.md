@@ -63,7 +63,8 @@ Tests that talk to YouTube live (everything under `com.lokotube.desktop.playback
 
 - A channel's bell preference (All / Personalized / None) is **not** implemented: it is a command
   mutation InnerTubeX does not expose.
-- The subscriptions feed and subscribing need a signed-in account; only their signed-out behaviour is
-  covered by automated checks.
+- The subscriptions feed and subscribing need a signed-in account. The feed is verified against a real
+  account (Linux, v0.2.3); the Subscribe **action** is not — it would change the account's
+  subscriptions, so it stays a user-side check.
 - 1440p and 4K playback fall behind the clock (software decode). mpv/hardware decoding was measured
   and deliberately not added: 1080p already holds real time.
