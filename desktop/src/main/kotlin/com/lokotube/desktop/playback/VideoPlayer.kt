@@ -84,10 +84,15 @@ class VideoPlayer(private val scope: CoroutineScope) {
     fun resume() = mutableState.update { it.copy(playing = true) }
 
     fun seek(positionMs: Long) {
-        // Streaming (pipe) video is non-seekable; a re-load-from-position seek lands later.
+        // Streaming (pipe) video is non-seekable, so a seek re-opens the stream from the target
+        // position via SABR's initialPlayerTimeMs. Live HLS has no seekable timeline.
+        val state = mutableState.value
+        val videoId = state.videoId ?: return
+        if (state.durationMs <= 0) return
+        load(videoId, state.height, fromMs = positionMs.coerceIn(0L, state.durationMs))
     }
 
-    fun seekBy(deltaMs: Long) = Unit
+    fun seekBy(deltaMs: Long) = seek(mutablePosition.value + deltaMs)
 
     fun setVolume(volume: Float) {
         val clamped = volume.coerceIn(0f, 1f)
@@ -112,24 +117,34 @@ class VideoPlayer(private val scope: CoroutineScope) {
         mutableState.update { it.copy(playing = false, loading = false, videoId = null) }
     }
 
-    private fun load(videoId: String, height: Int?) {
+    private fun load(videoId: String, height: Int?, fromMs: Long = 0L) {
         loadJob?.cancel()
         session?.cancelled = true
         session = null
-        mutablePosition.value = 0
+        val previousDuration = mutableState.value.durationMs
+        mutablePosition.value = fromMs
         mutableFrame.value = null
-        mutableState.update { it.copy(videoId = videoId, playing = true, loading = true, durationMs = 0, height = height, error = null) }
+        mutableState.update {
+            it.copy(
+                videoId = videoId,
+                playing = true,
+                loading = true,
+                durationMs = if (fromMs > 0) previousDuration else 0,
+                height = height,
+                error = null,
+            )
+        }
         loadJob =
             scope.launch(Dispatchers.IO) {
                 val streams =
                     try {
-                        resolveWithRetry(videoId, height)
+                        resolveWithRetry(videoId, height, fromMs)
                     } catch (error: Exception) {
                         if (isActive) mutableState.update { it.copy(loading = false, playing = false, error = "This video can't be played right now") }
                         return@launch
                     }
                 if (!isActive) return@launch
-                session = Session(streams.video, streams.audio, streams).also { it.start() }
+                session = Session(streams.video, streams.audio, streams, fromMs).also { it.start() }
             }
     }
 
@@ -138,11 +153,11 @@ class VideoPlayer(private val scope: CoroutineScope) {
      * (rate-limit / network outage). Genuine refusals — age-restricted, not a music video,
      * explicitly unsupported — are not retried and surface immediately.
      */
-    private suspend fun resolveWithRetry(videoId: String, height: Int?): VideoStreams {
+    private suspend fun resolveWithRetry(videoId: String, height: Int?, fromMs: Long = 0L): VideoStreams {
         var attempt = 0
         while (true) {
             try {
-                return StreamResolver.openVideo(videoId, height)
+                return StreamResolver.openVideo(videoId, height, fromMs)
             } catch (error: StreamResolveException) {
                 if (!error.reason.isTransient() || attempt >= MAX_RESOLVE_ATTEMPTS) throw error
             } catch (error: IOException) {
@@ -167,14 +182,15 @@ class VideoPlayer(private val scope: CoroutineScope) {
         private val video: SabrVideoStream?,
         private val audio: SabrAudioStream?,
         private val streams: VideoStreams,
+        private val seekTargetMs: Long,
     ) : Thread("lokotube-video") {
         @Volatile var cancelled = false
 
         /** Wall-clock reference the video throttles to; the audio seeks to catch up to it. */
         @Volatile var clockStartMs = 0L
 
-        /** DVR timestamp of the first live-HLS frame, used to normalize live positions to 0. */
-        private var liveStartTsMs = -1L
+        /** Raw timestamp of the first decoded frame, the 0-reference for the throttle clock. */
+        private var firstFrameTsMs = -1L
 
         override fun run() {
             val audioThread =
@@ -203,10 +219,13 @@ class VideoPlayer(private val scope: CoroutineScope) {
                     grabber.audioChannels = CHANNELS
                     grabber.sampleRate = SAMPLE_RATE
                     grabber.start()
-                    // The video has been playing on the wall clock; start the audio where it is now.
+                    // The audio stream starts at the same segment boundary as the video (both use
+                    // initialPlayerTimeMs). Read the container's own start timestamp — absolute
+                    // (segment) or relative (0) — and seek to the video's current position from it.
+                    val audioStartMs = (grabber.timestamp / US_PER_MS).coerceAtLeast(0L)
                     val elapsed = System.currentTimeMillis() - clockStartMs
                     if (clockStartMs > 0 && elapsed > AUDIO_SEEK_THRESHOLD_MS) {
-                        runCatching { grabber.timestamp = elapsed * US_PER_MS }
+                        runCatching { grabber.timestamp = (audioStartMs + elapsed) * US_PER_MS }
                     }
                     val format = AudioFormat(SAMPLE_RATE.toFloat(), BITS, CHANNELS, true, false)
                     // No audio device (headless/CI): decode-only, the video still plays on the wall clock.
@@ -333,19 +352,21 @@ class VideoPlayer(private val scope: CoroutineScope) {
                         }
                         break
                     }
-                    // Live-HLS frames carry the DVR buffer timestamp (e.g. start 3220s), which would
-                    // make the throttle below wait ~53min. Normalize the first frame to 0 instead.
-                    val displayMs =
-                        if (streams.isLiveHls) {
-                            if (liveStartTsMs < 0) liveStartTsMs = frame.timestampMs
-                            frame.timestampMs - liveStartTsMs
-                        } else {
-                            frame.timestampMs
-                        }
+                    // SABR re-loads start at the segment boundary that precedes the seek target — drop
+                    // those frames (fast, <1s) so the video lands on the target, and the 0-based throttle
+                    // below never sees the absolute/DVR timestamp (which would stall it).
+                    if (!streams.isLiveHls && firstFrameTsMs < 0 && frame.timestampMs < seekTargetMs) {
+                        continue
+                    }
+                    if (firstFrameTsMs < 0) firstFrameTsMs = frame.timestampMs
+                    val relativeMs = frame.timestampMs - firstFrameTsMs
+                    // Display position: SABR timestamps are absolute (a seek shows its real spot);
+                    // live-HLS DVR timestamps are meaningless to the user, so show relative instead.
+                    val displayMs = if (streams.isLiveHls) relativeMs else frame.timestampMs
                     // Throttle to the wall clock: play in real time, independent of audio readiness.
                     while (!cancelled && mutableState.value.playing) {
                         val elapsed = System.currentTimeMillis() - clockStartMs
-                        val ahead = displayMs - elapsed
+                        val ahead = relativeMs - elapsed
                         if (ahead <= 0) break
                         sleep(min(SYNC_POLL_MS, ahead))
                     }

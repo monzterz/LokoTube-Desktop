@@ -141,14 +141,14 @@ object StreamResolver {
     }
 
     /** Resolves a video and opens its SABR video+audio streams in one step. */
-    suspend fun openVideo(videoId: String, maxHeight: Int? = null): VideoStreams {
+    suspend fun openVideo(videoId: String, maxHeight: Int? = null, fromMs: Long = 0L): VideoStreams {
         val resolved = resolveVideo(videoId, maxHeight)
         val httpClient = YouTube.extractionTransport().httpClient
         // Live broadcasts resolve to HLS manifests (m3u8) instead of SABR bootstraps.
         val isHls = resolved.mimeType == "application/x-mpegURL" || resolved.videoUrl?.contains("m3u8") == true
         return VideoStreams(
-            video = if (isHls) null else resolved.videoBootstrap?.let { SabrVideoStream(httpClient, it) },
-            audio = if (isHls) null else resolved.audioBootstrap?.let { SabrAudioStream(httpClient, it) },
+            video = if (isHls) null else resolved.videoBootstrap?.let { SabrVideoStream(httpClient, it, initialPlayerTimeMs = fromMs) },
+            audio = if (isHls) null else resolved.audioBootstrap?.let { SabrAudioStream(httpClient, it, initialPlayerTimeMs = fromMs) },
             height = resolved.selectedHeight,
             availableHeights = resolved.availableHeights,
             durationMs = resolved.durationMs,
