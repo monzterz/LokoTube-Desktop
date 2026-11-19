@@ -139,6 +139,8 @@ No Mac or Linux at hand? The macOS and Linux app workflows in the **Actions** ta
 Tests that call YouTube (everything under `playback`) are opt-in — CI runners share a throttled IP:
 `./gradlew -p desktop test -PliveTests`.
 
+What changed in each release is in [CHANGELOG.md](CHANGELOG.md).
+
 ---
 
 ## Disclaimer
