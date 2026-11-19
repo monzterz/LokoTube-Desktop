@@ -6,11 +6,13 @@
 package com.lokotube.desktop.playback
 
 import com.lokotube.desktop.data.Settings
+import com.metrolist.innertubex.extraction.StreamResolveException
 import com.metrolist.innertubex.sabr.SabrAudioStream
 import com.metrolist.innertubex.sabr.SabrVideoStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +26,7 @@ import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.FrameGrabber
 import java.awt.image.BufferedImage
 import java.io.File
+import java.io.IOException
 import java.nio.ShortBuffer
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
@@ -120,7 +123,7 @@ class VideoPlayer(private val scope: CoroutineScope) {
             scope.launch(Dispatchers.IO) {
                 val streams =
                     try {
-                        StreamResolver.openVideo(videoId, height)
+                        resolveWithRetry(videoId, height)
                     } catch (error: Exception) {
                         if (isActive) mutableState.update { it.copy(loading = false, playing = false, error = "This video can't be played right now") }
                         return@launch
@@ -129,6 +132,32 @@ class VideoPlayer(private val scope: CoroutineScope) {
                 session = Session(streams.video, streams.audio, streams).also { it.start() }
             }
     }
+
+    /**
+     * Resolves a video stream, retrying with exponential backoff when YouTube transiently refuses
+     * (rate-limit / network outage). Genuine refusals — age-restricted, not a music video,
+     * explicitly unsupported — are not retried and surface immediately.
+     */
+    private suspend fun resolveWithRetry(videoId: String, height: Int?): VideoStreams {
+        var attempt = 0
+        while (true) {
+            try {
+                return StreamResolver.openVideo(videoId, height)
+            } catch (error: StreamResolveException) {
+                if (!error.reason.isTransient() || attempt >= MAX_RESOLVE_ATTEMPTS) throw error
+            } catch (error: IOException) {
+                if (attempt >= MAX_RESOLVE_ATTEMPTS) throw error
+            }
+            attempt++
+            delay(RESOLVE_RETRY_BASE_MS * (1L shl (attempt - 1)))
+        }
+    }
+
+    private fun StreamResolveException.Reason.isTransient(): Boolean =
+        this == StreamResolveException.Reason.NETWORK ||
+            this == StreamResolveException.Reason.NO_PLAYABLE_STREAM ||
+            this == StreamResolveException.Reason.UNAVAILABLE ||
+            this == StreamResolveException.Reason.UNKNOWN
 
     private suspend fun download(flow: Flow<ByteArray>, file: File) {
         file.outputStream().use { out -> flow.collect { out.write(it) } }
@@ -352,5 +381,8 @@ class VideoPlayer(private val scope: CoroutineScope) {
         const val SYNC_POLL_MS = 5L
         const val LIVE_RETRY_MS = 500L
         const val AUDIO_SEEK_THRESHOLD_MS = 500L
+        /** Retries after the first resolve attempt before giving up (1s, 2s, 4s backoff). */
+        const val MAX_RESOLVE_ATTEMPTS = 3
+        const val RESOLVE_RETRY_BASE_MS = 1_000L
     }
 }
