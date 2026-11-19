@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -181,6 +182,7 @@ fun VideoScreen(videoId: String, app: AppState) {
                 VideoSidePanel(
                     side = side,
                     onSide = { side = it },
+                    info = info,
                     related = related,
                     comments = comments,
                     commentCount = commentCount,
@@ -199,7 +201,7 @@ fun VideoScreen(videoId: String, app: AppState) {
 private fun commentCountLabel(count: String?): String? = count?.substringBefore(" Comments", count)?.trim()?.takeIf { it.isNotBlank() }
 
 /** Which list sits beside the video. */
-private enum class VideoSide { UpNext, Comments }
+private enum class VideoSide { UpNext, Comments, Description }
 
 /** Title, channel and subscribe, above the frame — the watch page's own header strip. */
 @Composable
@@ -264,6 +266,7 @@ private fun SubscribePill(subscribed: Boolean, onClick: () -> Unit) {
 private fun VideoSidePanel(
     side: VideoSide,
     onSide: (VideoSide) -> Unit,
+    info: WatchInfo?,
     related: List<VideoItem>?,
     comments: List<Comment>,
     commentCount: String?,
@@ -281,6 +284,7 @@ private fun VideoSidePanel(
         ) {
             SideTab("Up next", side == VideoSide.UpNext) { onSide(VideoSide.UpNext) }
             SideTab(commentCountLabel(commentCount)?.let { "Comments · $it" } ?: "Comments", side == VideoSide.Comments) { onSide(VideoSide.Comments) }
+            SideTab("Description", side == VideoSide.Description) { onSide(VideoSide.Description) }
         }
         when (side) {
             VideoSide.UpNext ->
@@ -294,6 +298,31 @@ private fun VideoSidePanel(
                         ) {
                             items(related, key = { it.id }, contentType = { "video" }) { VideoRow(it, app) }
                         }
+                }
+            VideoSide.Description ->
+                ScrollingColumn(
+                    Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = Spacing.M, end = Spacing.M, top = Spacing.S, bottom = Spacing.XXL),
+                ) {
+                    item(key = "description") {
+                        Column {
+                            info?.viewCount?.let {
+                                Text(it, style = MaterialTheme.typography.bodyMedium, color = colors.onSurface)
+                            }
+                            info?.publishedDate?.let {
+                                Text(it, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
+                            }
+                            Spacer(Modifier.height(Spacing.M))
+                            // Selectable: the description carries links the user wants to copy.
+                            SelectionContainer {
+                                Text(
+                                    info?.description?.takeIf { it.isNotBlank() } ?: "No description for this video.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.onSurface,
+                                )
+                            }
+                        }
+                    }
                 }
             VideoSide.Comments ->
                 when {

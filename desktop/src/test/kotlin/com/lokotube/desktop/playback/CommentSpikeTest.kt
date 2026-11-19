@@ -14,6 +14,11 @@ class CommentSpikeTest {
             val info = YouTube.watchInfo("dQw4w9WgXcQ").getOrThrow()
             println("channel=${info.channelName} id=${info.channelId} subs=${info.subscriberText} subscribed=${info.subscribed}")
             println("token=${info.commentsToken?.take(40)}…")
+            println("views=${info.viewCount} date=${info.publishedDate} description=${info.description?.length} chars")
+            println("description head: ${info.description?.take(120)?.replace("\n", " / ")}")
+            check(!info.description.isNullOrBlank()) { "deskripsi kosong" }
+            check(info.description!!.length > 100) { "deskripsi terpotong (${info.description!!.length} chars)" }
+            check(!info.viewCount.isNullOrBlank()) { "view count kosong" }
             check(info.channelId != null) { "channelId kosong" }
             check(!info.commentsToken.isNullOrBlank()) { "token komentar kosong" }
 

@@ -47,13 +47,28 @@ data class WatchNextResponse(
     @Serializable
     data class VideoPrimaryInfoRenderer(
         val title: Runs? = null,
-    )
+        val viewCount: ViewCount? = null,
+        val dateText: SimpleText? = null,
+    ) {
+        @Serializable
+        data class ViewCount(val videoViewCountRenderer: VideoViewCountRenderer? = null)
+
+        @Serializable
+        data class VideoViewCountRenderer(val viewCount: SimpleText? = null)
+    }
+
+    @Serializable
+    data class SimpleText(val simpleText: String? = null)
 
     @Serializable
     data class VideoSecondaryInfoRenderer(
         val owner: Owner? = null,
         val subscribeButton: SubscribeButton? = null,
-    )
+        val attributedDescription: Description? = null,
+    ) {
+        @Serializable
+        data class Description(val content: String? = null)
+    }
 
     @Serializable
     data class Owner(
@@ -145,9 +160,16 @@ fun WatchNextResponse.toWatchInfo(): WatchInfo {
             ?.contents
             .orEmpty()
             .firstNotNullOfOrNull { it.continuationItemRenderer?.continuationEndpoint?.continuationCommand?.token }
-    val title = contents.firstNotNullOfOrNull { it.videoPrimaryInfoRenderer?.title?.runs?.firstOrNull()?.text?.decodeHtmlEntities() }
+    val primary = contents.firstNotNullOfOrNull { it.videoPrimaryInfoRenderer }
+    val title = primary?.title?.runs?.firstOrNull()?.text?.decodeHtmlEntities()
+    // The description arrives whole (YouTube's own "…more" is a client-side collapse), so the panel
+    // can show all of it without another request.
+    val description = secondary?.attributedDescription?.content?.decodeHtmlEntities()?.ifBlank { null }
     return WatchInfo(
         title = title,
+        description = description,
+        viewCount = primary?.viewCount?.videoViewCountRenderer?.viewCount?.simpleText,
+        publishedDate = primary?.dateText?.simpleText,
         channelId = subscribe?.channelId ?: owner?.navigationEndpoint?.browseEndpoint?.browseId,
         channelName = owner?.title?.runs?.firstOrNull()?.text?.decodeHtmlEntities(),
         subscriberText = owner?.subscriberCountText?.text,

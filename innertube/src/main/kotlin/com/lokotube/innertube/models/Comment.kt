@@ -6,6 +6,12 @@ data class WatchInfo(
     val channelId: String?,
     val channelName: String?,
     val subscriberText: String?,
+    /** The whole description, newlines and all (empty when the video has none). */
+    val description: String? = null,
+    /** e.g. "1,838,686,097 views". */
+    val viewCount: String? = null,
+    /** e.g. "Oct 24, 2009". */
+    val publishedDate: String? = null,
     val subscribed: Boolean,
     /** Token that opens the comment section (`next` continuation). */
     val commentsToken: String?,

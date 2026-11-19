@@ -35,7 +35,7 @@
 - **Sleep timer** — stop after a set time or at the end of the song
 - **Video & Shorts** — watch regular YouTube videos in a dedicated section and scroll a vertical Shorts feed: autoplay, quality switching, full screen, and a sidebar of what's next
 - **Save videos** — one click writes a single `.mp4`/`.webm` to `~/Videos/LokoTube` (stream-copied, not re-encoded)
-- **Comments & subscribing** — the watch page carries the channel strip with a Subscribe button, and its comments (with likes and replies) in the sidebar, a page at a time
+- **Comments, description & subscribing** — the watch page carries the channel strip with a Subscribe button, and the sidebar holds the comments (with likes and replies, a page at a time) and the video's full description, selectable for copying
 - **Media keys** — system media controls on Windows, macOS and Linux (GNOME/KDE)
 - **Tray & menu bar** — keep playing from the tray or menu bar, and start at sign-in
 
