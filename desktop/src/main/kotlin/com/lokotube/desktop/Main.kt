@@ -544,7 +544,7 @@ private fun App(app: AppState) {
     }
 
     LaunchedEffect(state.current?.id) {
-        if (state.current != null && Settings.openNowPlaying.value && !app.sidePanelDismissed && app.sidePanel == null) app.sidePanel = SidePanel.NowPlaying
+        if (state.current != null && !app.isVideoSection && Settings.openNowPlaying.value && !app.sidePanelDismissed && app.sidePanel == null) app.sidePanel = SidePanel.NowPlaying
     }
 
     val videoFullscreen = app.videoFullscreen && app.route is Route.Video
@@ -568,7 +568,9 @@ private fun App(app: AppState) {
         Row(Modifier.fillMaxSize().padding(horizontal = Spacing.S).hazeSource(hazeState), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             if (!videoFullscreen) Sidebar(app)
             CenterPane(app, state, Modifier.weight(1f).fillMaxHeight())
-            if (!videoFullscreen && state.current != null) {
+            // The music panels are music chrome: in the video section they would squeeze the video
+            // and its Up next sidebar down to a strip.
+            if (!videoFullscreen && !app.isVideoSection && state.current != null) {
                 when (app.sidePanel) {
                     SidePanel.NowPlaying -> NowPlayingPanel(app, state)
                     SidePanel.Queue -> QueuePanel(app, state)
@@ -651,7 +653,7 @@ private fun CenterPane(app: AppState, state: PlayerState, modifier: Modifier) {
             }
         }
         AnimatedVisibility(
-            visible = app.nowPlayingOpen && state.current != null,
+            visible = app.nowPlayingOpen && state.current != null && !app.isVideoSection,
             enter = slideInVertically { it / 6 } + fadeIn(),
             exit = slideOutVertically { it / 6 } + fadeOut(),
             modifier = Modifier.fillMaxSize(),
